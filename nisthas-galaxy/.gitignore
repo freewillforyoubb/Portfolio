@@ -1,0 +1,16 @@
+# operating system clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# editor and IDE files
+.vscode/
+.idea/
+*.swp
+*~
+
+# local tooling, none of which this site needs to run
+node_modules/
+.netlify/
+.env
+.env.*

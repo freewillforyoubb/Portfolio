@@ -1,0 +1,1258 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>CV Portfolio Style 1 Sample</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&display=swap">
+
+<style>
+/* Layout: marbled endpapers run full bleed behind the page; the content sits
+   on translucent sheets laid over them, the way a text block sits on the
+   endpaper of a bound book. Five inks drawn from an antique marbling palette,
+   one assigned to each section the way a publisher bands a series. */
+:root {
+  --paper:  #f2eff3;
+  --sheet:  rgba(249,247,251,0.88);
+  --shadow: 0 1px 2px rgba(23,20,29,.05), 0 16px 34px -22px rgba(23,20,29,.30);
+  --panel:  #e9e4ed;
+  --ink:    #17141d;
+  --quiet:  #56505e;
+  --rule:   #dcd4e1;
+
+  --indigo:  #2b3a8c;
+  --carmine: #a81d3c;
+  --gold:    #9a6407;
+  --teal:    #0d5f55;
+  --plum:    #6d2a78;
+
+  /* marbling ink, as rgb triples for canvas */
+  --m1: 43, 58, 140;
+  --m2: 168, 29, 60;
+  --m3: 201, 130, 15;
+  --m4: 14, 99, 88;
+  --m5: 109, 42, 120;
+  --m-paper: 242, 239, 243;
+  --m-alpha: 0.115;
+
+  --accent: var(--indigo);
+
+  --display: "Fraunces", "Georgia", "Times New Roman", serif;
+  --body: "Newsreader", "Georgia", "Times New Roman", serif;
+  --ease: cubic-bezier(.19, 1, .22, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:  #120f17;
+    --sheet:  rgba(21,17,27,0.87);
+    --shadow: 0 1px 2px rgba(0,0,0,.30), 0 16px 34px -22px rgba(0,0,0,.65);
+    --panel:  #1f1a28;
+    --ink:    #ece7f2;
+    --quiet:  #a79fb1;
+    --rule:   #342c3f;
+
+    --indigo:  #93a2f5;
+    --carmine: #f2788f;
+    --gold:    #edb551;
+    --teal:    #4cc0ad;
+    --plum:    #c489d9;
+
+    --m1: 147, 162, 245;
+    --m2: 242, 120, 143;
+    --m3: 237, 181, 81;
+    --m4: 76, 192, 173;
+    --m5: 196, 137, 217;
+    --m-paper: 18, 15, 23;
+    --m-alpha: 0.135;
+
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:  #120f17;
+  --sheet:  rgba(21,17,27,0.87);
+  --shadow: 0 1px 2px rgba(0,0,0,.30), 0 16px 34px -22px rgba(0,0,0,.65);
+  --panel:  #1f1a28;
+  --ink:    #ece7f2;
+  --quiet:  #a79fb1;
+  --rule:   #342c3f;
+
+  --indigo:  #93a2f5;
+  --carmine: #f2788f;
+  --gold:    #edb551;
+  --teal:    #4cc0ad;
+  --plum:    #c489d9;
+
+  --m1: 147, 162, 245;
+  --m2: 242, 120, 143;
+  --m3: 237, 181, 81;
+  --m4: 76, 192, 173;
+  --m5: 196, 137, 217;
+  --m-paper: 18, 15, 23;
+  --m-alpha: 0.135;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.66;
+  -webkit-font-smoothing: antialiased;
+}
+
+#marble {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+/* no WebGL: a quiet painted ground rather than a blank page */
+html.no-gl body {
+  background:
+    radial-gradient(1100px 700px at 12% 8%,  rgba(43,58,140,.10), transparent 60%),
+    radial-gradient(900px 620px at 88% 26%,  rgba(168,29,60,.09),  transparent 62%),
+    radial-gradient(760px 560px at 50% 86%,  rgba(14,99,88,.08),   transparent 64%),
+    var(--paper);
+}
+html.no-gl #marble { display: none; }
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* The sheet: content laid over the endpaper.
+   Deliberately no backdrop-filter. Blurring a live, animating canvas forces
+   the browser to re-run the filter over the whole backdrop every frame, which
+   measured 29fps against 61fps without it. The ink is softened in the canvas
+   instead, which costs nothing. */
+.sheet {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+}
+
+/* reveal: transform only, text is never hidden */
+.rv { transition: transform 1s var(--ease); }
+html.js .rv:not(.in) { transform: translateY(20px); }
+
+/* ---------------- masthead ---------------- */
+.masthead {
+  padding: 60px 40px 46px;
+  margin-top: 54px;
+}
+
+.kicker {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--carmine);
+  margin: 0 0 26px;
+}
+
+h1 {
+  font-family: var(--display);
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-size: clamp(50px, 11.5vw, 118px);
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 .gl { display: inline-block; }
+html.js h1 .gl {
+  animation: settle 1.15s var(--ease) both;
+  animation-delay: calc(var(--i) * 48ms);
+}
+@keyframes settle {
+  from { transform: translateY(0.3em) rotate(2.4deg); }
+  to   { transform: translateY(0) rotate(0); }
+}
+
+.rules { display: grid; gap: 3px; margin: 26px 0 0; }
+.rules i { display: block; height: 2px; transform-origin: left; }
+.rules i:nth-child(1) { background: var(--indigo);  animation: draw 1.2s var(--ease) .20s both; }
+.rules i:nth-child(2) { background: var(--carmine); animation: draw 1.2s var(--ease) .30s both; width: 72%; }
+.rules i:nth-child(3) { background: var(--gold);    animation: draw 1.2s var(--ease) .40s both; width: 44%; }
+@keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+.thesis {
+  font-family: var(--display);
+  font-size: clamp(21px, 2.9vw, 30px);
+  line-height: 1.34;
+  font-weight: 400;
+  max-width: 19em;
+  margin: 30px 0 0;
+  text-wrap: balance;
+}
+.thesis em { font-style: italic; color: var(--carmine); }
+
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 30px 0 0;
+  font-size: 14px;
+  color: var(--quiet);
+}
+.meta-line a { color: var(--indigo); text-underline-offset: 3px; }
+
+/* ---------------- figures ---------------- */
+.figures {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 18px auto 0;
+  padding-inline: 24px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.fig {
+  padding: 22px 20px 24px;
+  min-width: 0;
+  border-top: 3px solid var(--c);
+  transition: transform .55s var(--ease);
+}
+.fig:hover { transform: translateY(-4px); }
+.fig:nth-child(1) { --c: var(--indigo); }
+.fig:nth-child(2) { --c: var(--carmine); }
+.fig:nth-child(3) { --c: var(--teal); }
+.fig:nth-child(4) { --c: var(--gold); }
+.fig b {
+  display: block;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(32px, 4.8vw, 48px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--c);
+}
+.fig span {
+  display: block;
+  margin-top: 11px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--quiet);
+}
+
+/* ---------------- epigraph band ---------------- */
+.epigraph {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 18px auto 0;
+  padding: 54px 40px 50px;
+  text-align: center;
+}
+.epigraph .mark {
+  font-family: var(--display);
+  font-size: 56px;
+  line-height: .6;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 10px;
+}
+.epigraph q {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(23px, 3.8vw, 40px);
+  line-height: 1.26;
+  quotes: none;
+  display: block;
+  max-width: 17em;
+  margin-inline: auto;
+  text-wrap: balance;
+}
+.epigraph cite {
+  display: block;
+  margin-top: 20px;
+  font-family: var(--display);
+  font-style: normal;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+/* ---------------- sections ---------------- */
+.band { margin: 18px auto 0; }
+
+.row {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 38px;
+  padding: 50px 40px;
+  align-items: start;
+}
+
+.label {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 7px 0 0;
+}
+.label::after {
+  content: "";
+  display: block;
+  width: 30px;
+  height: 2px;
+  background: var(--accent);
+  margin-top: 11px;
+  transform-origin: left;
+  transition: transform .9s var(--ease);
+}
+html.js .rv:not(.in) .label::after { transform: scaleX(0); }
+
+.col { min-width: 0; }
+
+h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(27px, 3.8vw, 38px);
+  line-height: 1.14;
+  letter-spacing: -0.022em;
+  margin: 0 0 16px;
+  text-wrap: balance;
+}
+h3 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.22;
+  margin: 0 0 5px;
+  letter-spacing: -0.015em;
+}
+
+p { margin: 0 0 15px; max-width: 60ch; }
+p:last-child { margin-bottom: 0; }
+.lede { font-size: 19px; line-height: 1.6; }
+
+dl.spec {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 9px 22px;
+  margin: 24px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+  font-size: 15px;
+}
+dl.spec dt {
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--quiet);
+  padding-top: 5px;
+}
+dl.spec dd { margin: 0; min-width: 0; }
+
+.fillme {
+  border: 1px dashed var(--carmine);
+  padding: 17px 19px;
+  margin: 22px 0 0;
+  background: var(--panel);
+}
+.fillme p { margin: 0; font-size: 15px; color: var(--quiet); max-width: none; }
+.fillme strong {
+  display: block;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--carmine);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.entry { padding-top: 28px; margin-top: 28px; border-top: 1px solid var(--rule); }
+.entry:first-child { padding-top: 0; margin-top: 0; border-top: 0; }
+
+.entry-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 16px;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.when {
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--quiet);
+  white-space: nowrap;
+}
+
+.tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; padding: 0; list-style: none; }
+.tags li {
+  font-family: var(--display);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--quiet);
+  border: 1px solid var(--rule);
+  border-radius: 100px;
+  padding: 2px 12px;
+  transition: border-color .4s var(--ease), color .4s var(--ease);
+}
+.entry:hover .tags li { border-color: var(--accent); color: var(--accent); }
+
+.result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 14px;
+  margin: 15px 0 0;
+  padding: 13px 17px;
+  background: var(--panel);
+  border-left: 3px solid var(--accent);
+}
+.result b {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.result span { font-size: 15px; color: var(--quiet); }
+
+ul.creds { list-style: none; margin: 0; padding: 0; display: grid; gap: 15px; }
+ul.creds li { display: grid; gap: 1px; padding-left: 16px; border-left: 2px solid var(--c, var(--rule)); }
+ul.creds li:nth-child(1) { --c: var(--gold); }
+ul.creds li:nth-child(2) { --c: var(--indigo); }
+ul.creds li:nth-child(3) { --c: var(--teal); }
+ul.creds li:nth-child(4) { --c: var(--plum); }
+ul.creds li:nth-child(5) { --c: var(--carmine); }
+ul.creds b { font-family: var(--display); font-weight: 600; font-size: 17px; }
+ul.creds span { font-size: 14.5px; color: var(--quiet); }
+
+.contact-grid { display: grid; gap: 16px; }
+.ctline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.ctline .v {
+  font-family: var(--display);
+  font-size: clamp(20px, 3.2vw, 28px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  word-break: break-word;
+  min-width: 0;
+}
+.copy {
+  font-family: var(--display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 100px;
+  padding: 5px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color .3s var(--ease), background-color .3s var(--ease);
+}
+.copy:hover { border-color: var(--accent); background: var(--panel); }
+
+footer {
+  position: relative;
+  z-index: 1;
+  max-width: 1080px;
+  margin: 18px auto 0;
+  padding: 26px 40px 30px;
+  font-size: 13.5px;
+  color: var(--quiet);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  justify-content: space-between;
+}
+.tail { height: 54px; }
+
+@media (max-width: 900px) {
+  .figures { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 760px) {
+  body { font-size: 16px; }
+  .masthead { padding: 40px 22px 34px; margin-top: 26px; }
+  .figures { padding-inline: 16px; gap: 10px; }
+  .epigraph { padding: 40px 22px 36px; }
+  .row { grid-template-columns: 1fr; gap: 16px; padding: 36px 22px; }
+  .label { margin: 0; }
+  .label::after { margin-top: 9px; }
+  dl.spec { grid-template-columns: 1fr; gap: 2px; }
+  dl.spec dd { margin-bottom: 12px; }
+  footer { padding: 22px 22px 26px; }
+  .wrap { padding-inline: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  html.js .rv:not(.in) { transform: none; }
+  html.js .rv:not(.in) .label::after { transform: none; }
+}
+
+/* sample marker: this page is a demo, and says so on every screen */
+.samp {
+  position: fixed; left: 14px; bottom: 14px; z-index: 40;
+  font-family: var(--display); font-size: 11px; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase;
+  background: var(--ink); color: var(--paper);
+  padding: 7px 14px; border-radius: 99px; pointer-events: none;
+}
+@media (max-width: 760px) { .samp { left: 10px; bottom: 10px; font-size: 10px; } }
+</style>
+
+<canvas id="marble" aria-hidden="true"></canvas>
+
+<div class="wrap">
+  <header class="masthead sheet">
+    <p class="kicker" data-c="kicker"></p>
+    <h1 id="name" data-c="name"></h1>
+    <div class="rules"><i></i><i></i><i></i></div>
+    <p class="thesis" data-c="thesis"></p>
+    <p class="meta-line" id="metaLine"></p>
+  </header>
+</div>
+
+<div class="figures" id="figList"></div>
+
+<div class="wrap">
+
+  <section class="band sheet rv" style="--accent: var(--indigo)">
+    <div class="row">
+      <p class="label">Research</p>
+      <div class="col">
+        <h2 data-c="researchTitle"></h2>
+        <p class="lede" data-c="researchLede"></p>
+        <dl class="spec" id="researchSpec"></dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="band sheet rv" style="--accent: var(--teal)">
+    <div class="row">
+      <p class="label">Practice</p>
+      <div class="col" id="practiceList"></div>
+    </div>
+  </section>
+
+  <section class="band sheet rv" style="--accent: var(--carmine)">
+    <div class="row">
+      <p class="label">Writing</p>
+      <div class="col" id="writingList"></div>
+    </div>
+  </section>
+
+  <section class="band sheet rv" style="--accent: var(--plum)">
+    <div class="row">
+      <p class="label">About</p>
+      <div class="col">
+        <div id="aboutText"></div>
+        <dl class="spec" id="aboutSpec"></dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="band sheet rv" style="--accent: var(--gold)">
+    <div class="row">
+      <p class="label">Credentials</p>
+      <div class="col"><ul class="creds" id="credList"></ul></div>
+    </div>
+  </section>
+
+  <section class="band sheet rv" style="--accent: var(--carmine)">
+    <div class="row">
+      <p class="label">Contact</p>
+      <div class="col">
+        <h2 data-c="contactHeading"></h2>
+        <div class="contact-grid">
+          <div class="ctline">
+            <span class="v" id="emailText"></span>
+            <button class="copy" type="button" data-copy="">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer class="sheet">
+  <span data-c="colophonLeft"></span>
+  <span data-c="colophonRight"></span>
+</footer>
+<div class="tail"></div>
+
+<div class="samp">Sample &middot; fictional</div>
+
+
+<script>
+/* ===================================================================
+   EVERYTHING YOU CAN EDIT LIVES IN THIS ONE BLOCK.
+
+   Change the words between the quote marks. Keep the quote marks, the
+   commas and the square brackets exactly where they are, and the page
+   will rebuild itself around whatever you write.
+
+   To add an item to a list, copy one { ... } block, paste it after the
+   last one, put a comma between them, and change the words.
+   To remove one, delete the whole { ... } block and its comma.
+
+   Everything on this page is invented. It is a design sample.
+   =================================================================== */
+var CONTENT = {
+
+  /* ---------- masthead ---------- */
+  name:   "Ira Menon",
+  kicker: "Writer &middot; Brand &amp; Editorial &middot; Sample",
+  thesis: "I write for brands that would rather sound like <em>a person</em> than a press release.",
+
+  /* the small lines under the name. add or remove whole { } blocks */
+  meta: [
+    { text: "Writer, editor and content strategist" },
+    { text: "Sample portfolio &middot; every detail invented" }
+  ],
+
+  /* ---------- the four figures ---------- */
+  figures: [
+    { figure: "9",    label: "month reported series on home cooks who became publishers" },
+    { figure: "31k",  label: "followers grown for an independent roastery in a year" },
+    { figure: "8",    label: "magazine issues commissioned and edited" },
+    { figure: "4,200",label: "readers of a weekly letter" }
+  ],
+
+  /* ---------- research ---------- */
+  researchTitle: "The Second Kitchen: How Home Cooks Became Publishers",
+  researchLede:  "A nine-month reported series on cooks who turned a recipe notebook into a subscription business, and what happened to their writing once the audience arrived.",
+  researchSpec: [
+    { label: "Format",    value: "Reported series, five parts" },
+    { label: "Method",    value: "Interviews and archive work" },
+    { label: "Sources",   value: "24 interviews, 60+ secondary" },
+    { label: "Length",    value: "18,000 words" },
+    { label: "Published", value: "2025" },
+    { label: "Read time", value: "About 70 minutes" }
+  ],
+
+  /* ---------- practice ----------
+     stat and statNote are optional: delete both lines if a job has no number */
+  practice: [
+    { role: "Saltfield Coffee",
+      when: "2024 &ndash; 25",
+      text: "Wrote the voice guide for an independent roastery, then ran the accounts against it for a year. Packaging copy, three campaigns and a weekly posting rhythm the in-house team now keeps up without help.",
+      stat: "4 &rarr; 31k", statNote: "followers in twelve months, across three campaigns",
+      tags: ["Brand voice", "Campaign copy", "Social"] },
+
+    { role: "The Quarterly Table",
+      when: "2023 &ndash; present",
+      text: "Commission, edit and lay out a food quarterly. Eight issues so far, each built around one reported feature and five shorter pieces, with a standing brief that every recipe has to earn its place in the argument.",
+      stat: "8 issues", statNote: "edited end to end, in print and online",
+      tags: ["Commissioning", "Editing", "Print"] },
+
+    { role: "Marigold Studio",
+      when: "2022 &ndash; 24",
+      text: "Wrote brand voice guides for twenty-two client teams and trained the people who had to use them. Built the review checklist the studio still runs every piece of copy through before it ships.",
+      tags: ["Voice guides", "Training", "Process"] }
+  ],
+
+  /* ---------- writing ---------- */
+  writing: [
+    { role: "Field Notes",
+      when: "2023 &ndash; present",
+      text: "A letter about how food gets written about, sent every Thursday.",
+      stat: "4,200", statNote: "subscribers, 90+ issues published" },
+
+    { role: "Short fiction",
+      when: "Ongoing",
+      text: "Stories in three journals, and a first collection in progress." }
+  ],
+
+  /* ---------- about ----------
+     the first line is set large; the rest are normal paragraphs */
+  about: [
+    "A writer and editor working across brand, magazine and long-form reporting.",
+    "Ten years of moving between the three: a voice guide one month, a reported feature the next. The reporting is what keeps the brand work honest, and the brand work is what keeps the reporting plain.",
+    "Available for brand voice, editorial direction and long-form commissions."
+  ],
+  aboutSpec: [
+    { label: "Focus",   value: "Brand voice, editorial direction, reported features" },
+    { label: "Formats", value: "Letters, magazines, campaign copy, scripts" },
+    { label: "Tools",   value: "Figma, Notion, Ghost, InDesign" }
+  ],
+
+  /* ---------- credentials: degrees only ---------- */
+  credentials: [
+    { title: "M.A. Journalism",                 detail: "postgraduate degree" },
+    { title: "B.A. (Hons.) English Literature", detail: "undergraduate degree" }
+  ],
+
+  /* ---------- contact ---------- */
+  contactHeading: "Open to brand voice, editorial and long-form commissions.",
+  email:          "hello@example.com",
+  colophonLeft:   "Ira Menon &middot; Sample portfolio",
+  colophonRight:  "Fictional. Built as a design sample."
+};
+
+/* =================================================================== */
+/* Below this line is the machinery that puts the words above onto the
+   page. You should not need to change any of it.                      */
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+
+  document.querySelectorAll("[data-c]").forEach(function (el) {
+    var v = CONTENT[el.getAttribute("data-c")];
+    if (v != null) el.innerHTML = v;
+  });
+
+  $("metaLine").innerHTML = (CONTENT.meta || []).map(function (m) {
+    return "<span>" + m.text + "</span>";
+  }).join("");
+
+  $("figList").innerHTML = (CONTENT.figures || []).map(function (f) {
+    return '<div class="fig sheet"><b>' + f.figure + '</b><span>' + f.label + '</span></div>';
+  }).join("");
+
+  function spec(rows) {
+    return (rows || []).map(function (r) {
+      return "<dt>" + r.label + "</dt><dd>" + r.value + "</dd>";
+    }).join("");
+  }
+  $("researchSpec").innerHTML = spec(CONTENT.researchSpec);
+  $("aboutSpec").innerHTML = spec(CONTENT.aboutSpec);
+
+  function entries(list) {
+    return (list || []).map(function (e) {
+      var h = '<article class="entry"><div class="entry-top"><h3>' + e.role +
+              '</h3><span class="when">' + e.when + "</span></div><p>" + e.text + "</p>";
+      if (e.stat) {
+        h += '<div class="result"><b>' + e.stat + "</b><span>" + (e.statNote || "") + "</span></div>";
+      }
+      if (e.tags && e.tags.length) {
+        h += '<ul class="tags">' + e.tags.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ul>";
+      }
+      return h + "</article>";
+    }).join("");
+  }
+  $("practiceList").innerHTML = entries(CONTENT.practice);
+  $("writingList").innerHTML = entries(CONTENT.writing);
+
+  $("aboutText").innerHTML = (CONTENT.about || []).map(function (p, i) {
+    return "<p" + (i === 0 ? ' class="lede"' : "") + ">" + p + "</p>";
+  }).join("");
+
+  $("credList").innerHTML = (CONTENT.credentials || []).map(function (c) {
+    return "<li><b>" + c.title + "</b><span>" + c.detail + "</span></li>";
+  }).join("");
+
+  $("emailText").textContent = CONTENT.email;
+  var cp = document.querySelector("[data-copy]");
+  if (cp) cp.setAttribute("data-copy", CONTENT.email);
+
+})();
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var root = document.documentElement;
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  (function splitName() {
+    var h = document.getElementById("name");
+    if (!h) return;
+    var text = h.textContent, i = 0;
+    h.textContent = "";
+    text.split("").forEach(function (ch) {
+      if (ch === " ") { h.appendChild(document.createTextNode(" ")); return; }
+      var s = document.createElement("span");
+      s.className = "gl";
+      s.style.setProperty("--i", i++);
+      s.textContent = ch;
+      h.appendChild(s);
+    });
+  })();
+
+  root.className += " js";
+
+  (function reveals() {
+    var items = [].slice.call(document.querySelectorAll(".rv"));
+    if (!("IntersectionObserver" in window)) {
+      items.forEach(function (el) { el.classList.add("in"); });
+      return;
+    }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.04 });
+    items.forEach(function (el) { io.observe(el); });
+    setTimeout(function () { items.forEach(function (el) { el.classList.add("in"); }); }, 9000);
+  })();
+
+  /* ------------------------------------------------------------------
+     Marbled endpapers, on the GPU.
+
+     A single fullscreen quad running domain-warped fractal noise, which
+     is how real marbling behaves: ink dragged through ink. Three warp
+     passes give the folded, feathered edges a particle system cannot.
+
+     Noise comes from a 256x256 texture generated once at startup rather
+     than from per-fragment hashing. A filtered texture fetch is close to
+     free on a GPU; the hash version cost about sixty ALU ops per fragment
+     and forced the whole thing down to a third of screen resolution, which
+     is what made the earlier build look soft. Sampled instead, it runs at
+     full device resolution with five octaves.
+
+     Interaction:
+       move    comb the ink; fast movement lays a trail of stirs
+       click   drop a blot that blooms and settles
+       scroll  carries the flow and shifts which inks dominate
+       idle    slow autonomous drift, so it is alive without input
+
+     No library. This is one quad and one fragment shader; Three.js would
+     add about 600KB to a page recruiters open on mobile data and would
+     not draw a single pixel differently.
+  ------------------------------------------------------------------ */
+  (function endpapers() {
+    var cv = document.getElementById("marble");
+    if (!cv) return;
+
+    var opts = { alpha: true, antialias: false, depth: false, stencil: false, powerPreference: "high-performance" };
+    var gl = null;
+    try {
+      gl = cv.getContext("webgl", opts) || cv.getContext("experimental-webgl", opts);
+    } catch (e) { gl = null; }
+    if (!gl) { root.classList.add("no-gl"); return; }
+
+    var VERT =
+      "attribute vec2 aPos;" +
+      "void main(){ gl_Position = vec4(aPos, 0.0, 1.0); }";
+
+    var FRAG = [
+      "precision highp float;",
+      "uniform vec2  uRes;",
+      "uniform float uTime;",
+      "uniform float uScroll;",
+      "uniform float uStrength;",
+      "uniform vec3  uPaper;",
+      "uniform vec3  uInk[5];",
+      "uniform vec3  uStir[12];",
+      "uniform sampler2D uNoise;",
+
+      // five octaves, one filtered fetch each
+      "float fbm(vec2 p){",            // detail pass
+      "  float v = 0.0, a = 0.58;",
+      "  for (int i = 0; i < 3; i++){",
+      "    v += a * texture2D(uNoise, p * 0.052).r;",
+      "    p = p * 2.15 + vec2(13.7, 9.1);",
+      "    a *= 0.36;",
+      "  }",
+      "  return v;",
+      "}",
+      "float warp(vec2 p){",           // bends space; must stay smooth
+      "  float v = texture2D(uNoise, p * 0.040).r * 0.62;",
+      "  v += texture2D(uNoise, (p * 2.15 + vec2(13.7, 9.1)) * 0.040).r * 0.24;",
+      "  return v;",
+      "}",
+
+      "void main(){",
+      "  vec2 uv = gl_FragCoord.xy / uRes;",
+      "  float ar = uRes.x / uRes.y;",
+      "  vec2 p = vec2(uv.x * ar, uv.y) * 2.15;",
+
+      // comb: swirl space tangentially around each live stir point
+      "  for (int i = 0; i < 12; i++){",
+      "    float s = uStir[i].z;",
+      "    if (s <= 0.001) continue;",
+      "    vec2 c = vec2(uStir[i].x * ar, uStir[i].y) * 2.15;",
+      "    vec2 d = p - c;",
+      "    float r2 = dot(d, d);",
+      "    float k = max(0.0, 1.0 - r2 * 4.5);",
+      "    float f = k * k * s;",
+      "    p += vec2(-d.y, d.x) * f * 2.4;",
+      "    p -= normalize(d + 1e-5) * f * 0.38;",
+      "  }",
+
+      "  float t = uTime * 0.021;",
+      "  float sc = uScroll * 1.25;",
+
+      // three-pass domain warp
+      "  vec2 q = vec2(warp(p + t),",
+      "                warp(p + vec2(5.2, 1.3) - t * 0.82));",
+      "  vec2 r = vec2(warp(p + 5.2 * q + vec2(1.7, 9.2) + sc),",
+      "                warp(p + 5.2 * q + vec2(8.3, 2.8) - sc * 0.7));",
+      "  float f = fbm(p + 5.0 * r);",
+
+      // ink selection from the warp field, banded so veins read as ink
+      "  float band = fract(f * 1.45 + r.x * 0.62 + sc * 0.3);",
+      "  float sel  = clamp(f * 1.35 + q.y * 0.5, 0.0, 0.999) * 4.0;",
+      "  int   i0   = int(floor(sel));",
+      "  float mixf = fract(sel);",
+
+      "  vec3 ink = uInk[0];",
+      "  for (int k = 0; k < 5; k++){",
+      "    if (k == i0) ink = mix(uInk[k], uInk[k == 4 ? 4 : k + 1], mixf);",
+      "  }",
+
+      // thin dark edges where the warp folds, plus a softer body
+      "  float vein = smoothstep(0.30, 0.47, band) * (1.0 - smoothstep(0.55, 0.82, band));",
+      // Fine filigree between the broad veins. Kept at a low multiplier on
+      // purpose: a high one turns any grain in f into speckle, which is what
+      // broke the first full-resolution build.
+      "  float hair = fract(f * 4.2 + r.y * 1.4);",
+      "  float fine = smoothstep(0.43, 0.50, hair) * (1.0 - smoothstep(0.50, 0.58, hair)) * 0.30;",
+      "  float body = pow(clamp(f * 1.6, 0.0, 1.0), 1.5);",
+      "  float amt  = (vein * 1.02 + fine + body * 0.60) * uStrength;",
+
+      "  vec3 col = mix(uPaper, ink, clamp(amt, 0.0, 1.0));",
+      // Paper grain, taken from the green channel of the noise texture rather
+      // than a per-pixel hash: one cheap fetch at exactly one texel per pixel,
+      // and it stops large flat areas banding.
+      "  col += (texture2D(uNoise, gl_FragCoord.xy / 256.0).g - 0.5) * 0.030;",
+      "  gl_FragColor = vec4(col, 1.0);",
+      "}"
+    ].join("\n");
+
+    function compile(type, src) {
+      var sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+        if (window.console) console.warn("endpapers shader:", gl.getShaderInfoLog(sh));
+        gl.deleteShader(sh);
+        return null;
+      }
+      return sh;
+    }
+
+    var vs = compile(gl.VERTEX_SHADER, VERT);
+    var fs = compile(gl.FRAGMENT_SHADER, FRAG);
+    if (!vs || !fs) { root.classList.add("no-gl"); return; }
+
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+      if (window.console) console.warn("endpapers link:", gl.getProgramInfoLog(prog));
+      root.classList.add("no-gl");
+      return;
+    }
+    gl.useProgram(prog);
+
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var aPos = gl.getAttribLocation(prog, "aPos");
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    var U = {};
+    ["uRes", "uTime", "uScroll", "uStrength", "uPaper", "uInk", "uStir", "uNoise"].forEach(function (n) {
+      U[n] = gl.getUniformLocation(prog, n);
+    });
+
+    /* Noise source. 256 is power-of-two, so REPEAT wrapping and mipmaps
+       are both legal in WebGL1; the mips stop the high octaves shimmering. */
+    (function noiseTexture() {
+      var NS = 256, px = new Uint8Array(NS * NS * 4), seed = 1337 | 0;
+      function rnd() {
+        seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
+        return ((seed >>> 8) & 0xffff) / 65535;
+      }
+      for (var i = 0; i < NS * NS; i++) {
+        px[i * 4] = rnd() * 255;
+        px[i * 4 + 1] = rnd() * 255;
+        px[i * 4 + 2] = rnd() * 255;
+        px[i * 4 + 3] = 255;
+      }
+      var tex = gl.createTexture();
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, NS, NS, 0, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.generateMipmap(gl.TEXTURE_2D);
+      gl.uniform1i(U.uNoise, 0);
+    })();
+
+    // ---- theme ----
+    var inkArr = new Float32Array(15);
+    var paperArr = new Float32Array(3);
+    var strength = 1.0;
+
+    function triple(str, out, at) {
+      var v = (str || "0,0,0").split(",");
+      out[at] = (parseFloat(v[0]) || 0) / 255;
+      out[at + 1] = (parseFloat(v[1]) || 0) / 255;
+      out[at + 2] = (parseFloat(v[2]) || 0) / 255;
+    }
+    function readTheme() {
+      var s = getComputedStyle(root);
+      ["--m1", "--m2", "--m3", "--m4", "--m5"].forEach(function (k, i) {
+        triple(s.getPropertyValue(k).trim(), inkArr, i * 3);
+      });
+      triple(s.getPropertyValue("--m-paper").trim(), paperArr, 0);
+      strength = (parseFloat(s.getPropertyValue("--m-alpha")) || 0.115) * 7.6;
+    }
+
+    // ---- stirs: a ring buffer the pointer writes into ----
+    var STIRS = 12;
+    var stir = new Float32Array(STIRS * 3);
+    var stirMeta = [];
+    for (var si = 0; si < STIRS; si++) stirMeta.push({ s: 0, decay: 1 });
+    var head = 0;
+
+    function addStir(nx, ny, power, decay) {
+      stir[head * 3] = nx;
+      stir[head * 3 + 1] = ny;
+      stir[head * 3 + 2] = power;
+      stirMeta[head].s = power;
+      stirMeta[head].decay = decay;
+      head = (head + 1) % STIRS;
+    }
+
+    /* ---- sizing and the quality ladder ----
+       The texture-sampled noise is cheap enough to run at the display's own
+       pixel ratio, which is the point: the previous build was soft because
+       it rendered at a third of CSS resolution. The top rung is now real
+       device pixels, capped at 2x. The page still times itself and drops a
+       rung if it cannot hold frame, so a weak phone degrades instead of
+       stuttering. It only steps down, which rules out oscillation. */
+    var ladder = [1, 0.7, 0.5, 0.34], qi = 0;
+    var cssW = -1, cssH = -1;
+
+    function buildLadder() {
+      var top = Math.min(window.devicePixelRatio || 1, 1.5);
+      ladder = [top, 1.0, 0.7, 0.45];
+      if (top <= 1.0) ladder = [1.0, 0.8, 0.6, 0.42];
+    }
+
+    function applyScale() {
+      cv.width = Math.max(1, Math.round(cssW * ladder[qi]));
+      cv.height = Math.max(1, Math.round(cssH * ladder[qi]));
+      gl.viewport(0, 0, cv.width, cv.height);
+    }
+    function resize() {
+      var w = cv.clientWidth, h = cv.clientHeight;
+      if (w === cssW && h === cssH) return false;   // CSS px, so no per-frame realloc
+      cssW = w; cssH = h;
+      buildLadder();
+      if (qi > ladder.length - 1) qi = ladder.length - 1;
+      applyScale();
+      return true;
+    }
+
+    // ---- state ----
+    var scrollT = 0, scrollCur = 0;
+    var lastX = 0, lastY = 0, hasLast = false;
+    var running = false, raf = 0, last = 0, clock = 0;
+
+    function onScroll() {
+      var doc = document.documentElement;
+      var span = doc.scrollHeight - window.innerHeight;
+      scrollT = span > 0 ? (window.pageYOffset || doc.scrollTop) / span : 0;
+    }
+
+    function render(dt) {
+      clock += dt;
+      scrollCur += (scrollT - scrollCur) * (1 - Math.pow(0.02, dt));
+
+      for (var i = 0; i < STIRS; i++) {
+        var m = stirMeta[i];
+        if (m.s > 0.0005) {
+          m.s *= Math.pow(m.decay, dt);
+          stir[i * 3 + 2] = m.s;
+        } else if (stir[i * 3 + 2] !== 0) {
+          m.s = 0; stir[i * 3 + 2] = 0;
+        }
+      }
+
+      gl.uniform2f(U.uRes, cv.width, cv.height);
+      gl.uniform1f(U.uTime, clock);
+      gl.uniform1f(U.uScroll, scrollCur);
+      gl.uniform1f(U.uStrength, strength);
+      gl.uniform3fv(U.uPaper, paperArr);
+      gl.uniform3fv(U.uInk, inkArr);
+      gl.uniform3fv(U.uStir, stir);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+
+    // One draw per display refresh, with a floor so a 120Hz panel does not
+    // pay twice for a background that cannot show the difference.
+    var MIN_DT = 1 / 58, acc = 0;
+    var probeN = 0, probeT0 = 0, settled = false, startedAt = 0;
+
+    function frame(now) {
+      if (!running) return;
+      var dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016;
+      var first = !last;
+      last = now;
+      if (!startedAt) startedAt = now;
+      acc += dt;
+      if (acc >= MIN_DT) { render(acc); acc = 0; }
+
+      // Judge on wall-clock, not on a frame count. Gating this on 45 frames
+      // meant a device running at 2fps stuttered for 22 seconds before the
+      // ladder reacted; a slow device is exactly the one that cannot afford
+      // to wait. Measuring elapsed time also sidesteps the dt clamp above.
+      // Warm-up: the first second or so is font loading, layout and first
+      // paint, which depresses frame rate on any device. Probing through that
+      // would downgrade perfectly capable hardware on a false reading.
+      // Measured on wall-clock, not on `clock`: that one advances by the
+      // clamped dt, so on a slow device it runs at a fraction of real time
+      // and the warm-up would never expire on exactly the hardware that
+      // needs the ladder most.
+      if (!settled && !first && (now - startedAt) > 1200) {
+        if (!probeT0) { probeT0 = now; probeN = 0; }
+        probeN++;
+        var span = now - probeT0;
+        if ((span >= 600 && probeN >= 5) || span >= 1500) {
+          if (probeN / (span / 1000) < 42 && qi < ladder.length - 1) {
+            qi++; applyScale();
+            probeT0 = 0;            // re-measure at the new rung
+          } else {
+            settled = true;
+          }
+        }
+      }
+      raf = requestAnimationFrame(frame);
+    }
+
+    function start() {
+      if (running || reduce.matches) return;
+      running = true; last = 0;
+      raf = requestAnimationFrame(frame);
+    }
+    function stop() {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    }
+
+    // ---- input ----
+    function norm(e) {
+      return [e.clientX / window.innerWidth, 1 - e.clientY / window.innerHeight];
+    }
+
+    window.addEventListener("pointermove", function (e) {
+      var n = norm(e);
+      if (hasLast) {
+        var dx = n[0] - lastX, dy = n[1] - lastY;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 0.004) return;
+        // fast movement lays several stirs along the path, so the comb
+        // follows the gesture rather than only its endpoint
+        var steps = Math.min(3, Math.max(1, Math.round(d * 26)));
+        for (var k = 1; k <= steps; k++) {
+          var u = k / steps;
+          addStir(lastX + dx * u, lastY + dy * u, 0.26 + Math.min(d * 5.0, 0.5), 0.26);
+        }
+      }
+      lastX = n[0]; lastY = n[1]; hasLast = true;
+      if (reduce.matches) requestAnimationFrame(function () { render(0.016); });
+    }, { passive: true });
+
+    window.addEventListener("pointerdown", function (e) {
+      var n = norm(e);
+      addStir(n[0], n[1], 1.5, 0.52);   // a blot, blooms then settles
+      lastX = n[0]; lastY = n[1]; hasLast = true;
+      if (reduce.matches) requestAnimationFrame(function () { render(0.016); });
+    }, { passive: true });
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    var rt = 0;
+    window.addEventListener("resize", function () {
+      clearTimeout(rt);
+      rt = setTimeout(function () {
+        if (resize() && reduce.matches) render(0.016);
+      }, 150);
+    }, { passive: true });
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) stop(); else start();
+    });
+
+    var scheme = window.matchMedia("(prefers-color-scheme: dark)");
+    if (scheme.addEventListener) {
+      scheme.addEventListener("change", function () {
+        readTheme();
+        if (reduce.matches) render(0.016);
+      });
+    }
+    if (reduce.addEventListener) {
+      reduce.addEventListener("change", function () {
+        if (reduce.matches) { stop(); render(0.016); } else { start(); }
+      });
+    }
+
+    readTheme();
+    resize();
+    onScroll();
+    // a few resting stirs so the opening frame already has movement in it
+    addStir(0.22, 0.72, 0.7, 0.9);
+    addStir(0.78, 0.34, 0.6, 0.9);
+    addStir(0.52, 0.12, 0.5, 0.9);
+
+    if (reduce.matches) { clock = 8.0; render(0.016); } else { start(); }
+  })();
+
+  document.querySelectorAll(".copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var text = btn.getAttribute("data-copy");
+      var flash = function (m, ms) {
+        btn.textContent = m;
+        setTimeout(function () { btn.textContent = "Copy"; }, ms);
+      };
+      var fallback = function () {
+        var el = btn.parentNode.querySelector(".v");
+        if (el) {
+          var r = document.createRange();
+          r.selectNodeContents(el);
+          var s = window.getSelection();
+          s.removeAllRanges(); s.addRange(r);
+        }
+        flash("Select and copy", 2400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { flash("Copied", 1600); }, fallback);
+      } else { fallback(); }
+    });
+  });
+})();
+</script>
+
+</body></html>

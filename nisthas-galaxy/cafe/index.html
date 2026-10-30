@@ -1,0 +1,786 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Nistha's Brownie Points</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sacramento&family=Patrick+Hand&display=swap">
+
+<style>
+/* Layout: one sheet of ruled exercise-book paper with a margin rule, everything
+   drawn on it by hand. Boxes take their wobble from an SVG displacement filter
+   on a border layer behind the text, so lettering stays crisp.
+   Palette is the bakery-brown set, molasses through butter, with the deep
+   cherry red carried over from the pastry palette for prices and alerts.
+   Single visual world on purpose, so no dark variant: a notebook is a
+   notebook. Every colour is still declared explicitly. */
+:root {
+  --paper:    #fff6e0;
+  --sheet:    #fffbee;
+  --card:     #ffeec9;
+  --rule:     #f2ddb4;
+  --margin:   #d79f90;
+
+  --molasses: #4E0705;   /* ink: body text, outlines */
+  --browned:  #812203;   /* headings */
+  --roast:    #BD5705;   /* large display and fills only, 4.3:1 on paper */
+  --toasty:   #ED9040;   /* fills */
+  --greasey:  #FFC270;   /* fills */
+  --butter:   #FDE971;   /* fills */
+  --cherry:   #8E1913;   /* prices, lives, alerts */
+  --dusty:    #D79F90;   /* fills */
+  --pencil:   #7a5530;   /* muted text, 6.2:1 */
+
+  /* Jaceline, the face the "caramel" sample is set in, is not on Google
+     Fonts, and the runtime only accepts stylesheets from there. Sacramento is
+     the nearest available flowing monoline script. Script only carries the big
+     display sizes; anything small stays in the hand face, because a script at
+     19px is decoration, not reading. */
+  --display: "Sacramento", "Snell Roundhand", "Brush Script MT", cursive;
+  --hand: "Patrick Hand", "Comic Sans MS", "Segoe Print", cursive;
+
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--hand);
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--molasses);
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 31px, var(--rule) 31px 32px),
+    var(--paper);
+}
+
+.sheet { position: relative; max-width: 980px; margin-inline: auto; padding: 0 24px 70px; }
+@media (min-width: 820px) {
+  .sheet { padding-left: 104px; padding-right: 48px; }
+  .sheet::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 68px;
+    width: 2px; background: var(--margin);
+  }
+}
+
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--cherry); outline-offset: 3px; border-radius: 2px; }
+
+/* ---------- hand-drawn boxes: filter on the border layer, never the text ---------- */
+.boxed { position: relative; }
+.boxed > .edge {
+  position: absolute; inset: 0;
+  border: 2.5px solid var(--molasses);
+  border-radius: 14px;
+  filter: url(#wobble);
+  pointer-events: none;
+}
+.boxed > * { position: relative; }
+
+/* ---------- masthead ---------- */
+header { padding-top: 54px; text-align: center; }
+.scribble-top {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  color: var(--roast); margin-bottom: 4px;
+}
+.scribble-top span { font-size: 17px; letter-spacing: .14em; text-transform: uppercase; color: var(--browned); }
+
+h1 {
+  font-family: var(--display); font-weight: 700;
+  font-size: clamp(44px, 9.4vw, 92px); line-height: 1.12;
+  margin: 6px 0 0; letter-spacing: 0; text-wrap: balance;
+  color: var(--browned);
+}
+h1 { transform: rotate(-0.6deg); }
+h1 .pts { color: var(--cherry); display: inline-block; }
+.tagline { transform: rotate(.4deg); }
+
+.tagline { font-size: clamp(19px, 2.6vw, 25px); margin: 14px 0 0; }
+.tagline u { text-decoration: none; border-bottom: 2.5px solid var(--cherry); padding-bottom: 1px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin: 30px 0 0; }
+
+/* pen-filled button with a hard offset shadow */
+.btn {
+  font-family: var(--hand); font-size: 22px;
+  color: var(--butter); background: var(--browned);
+  border: 0; border-radius: 14px; padding: 13px 30px 15px;
+  cursor: pointer; text-decoration: none; display: inline-block;
+  box-shadow: 5px 6px 0 rgba(78, 7, 5, .25);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+/* named "alt", not "red": a bare text utility with the same specificity as
+   .btn further down the sheet would win on source order and paint the label
+   the same colour as the fill. */
+.btn.alt { background: var(--cherry); color: var(--butter); }
+.btn:hover { transform: translate(2px, 2px); box-shadow: 3px 4px 0 rgba(78, 7, 5, .25); }
+.btn small { display: block; font-size: 15px; opacity: .82; }
+
+/* ---------- sections ---------- */
+section { margin-top: 62px; }
+h2 {
+  font-family: var(--display); font-weight: 700;
+  font-size: clamp(30px, 4.6vw, 44px); line-height: 1.16; margin: 0 0 8px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  color: var(--browned);
+}
+.sub { color: var(--pencil); font-size: 18px; margin: 0 0 24px; }
+
+/* ---------- the display case ---------- */
+/* six items: two rows of three, or three of two. auto-fit was fitting five
+   across and leaving the sixth alone on its own row. */
+.case { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 8px; }
+@media (min-width: 680px) { .case { grid-template-columns: repeat(3, 1fr); } }
+.case figure { margin: 0; padding: 14px 10px 16px; text-align: center; background: var(--sheet); border-radius: 14px; }
+.case svg { width: 86px; height: 86px; display: block; margin: 0 auto 6px; transition: transform .25s cubic-bezier(.3,1.5,.5,1); }
+.case figure:hover svg { transform: rotate(-5deg) scale(1.06); }
+.case figcaption { font-size: 17px; color: var(--browned); }
+.case .p { display: block; color: var(--cherry); font-size: 17px; }
+
+/* ---------- menu ---------- */
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 28px; }
+.card { padding: 26px 26px 30px; background: var(--sheet); border-radius: 14px; }
+.card h3 {
+  font-family: var(--hand); font-size: 22px; font-weight: 400; margin: 0 0 16px;
+  display: flex; align-items: center; gap: 10px; color: var(--browned);
+}
+ul.items { list-style: none; margin: 0; padding: 0; }
+ul.items li { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; }
+ul.items li + li { border-top: 1.5px dashed rgba(129,34,3,.28); }
+.nm { flex: 0 1 auto; min-width: 0; }
+.nm em { display: block; font-style: normal; font-size: 16px; color: var(--pencil); }
+.dots { flex: 1 1 auto; border-bottom: 2px dotted rgba(129,34,3,.4); transform: translateY(-5px); min-width: 14px; }
+.pr { color: var(--cherry); white-space: nowrap; font-size: 21px; }
+.star {
+  font-size: 15px; color: var(--cherry); border: 2px solid var(--cherry);
+  border-radius: 20px; padding: 1px 9px 2px; margin-left: 8px; white-space: nowrap;
+}
+
+/* ---------- games ---------- */
+.game { padding: 22px 22px 26px; background: var(--sheet); border-radius: 14px; }
+.game h3 {
+  font-family: var(--hand); font-size: 22px; font-weight: 400; margin: 0 0 8px;
+  color: var(--browned); display: flex; align-items: center; gap: 10px;
+}
+.game .how { color: var(--pencil); font-size: 17px; margin: 0 0 16px; }
+
+.stage { position: relative; }
+#catch {
+  display: block; width: 100%; height: auto; aspect-ratio: 16 / 10;
+  background: var(--card); border-radius: 12px; touch-action: none;
+}
+.hud { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; margin: 12px 0 0; font-size: 19px; }
+.hud b { color: var(--cherry); font-weight: normal; }
+.lives { letter-spacing: 3px; color: var(--cherry); }
+
+.overlay {
+  position: absolute; inset: 0; display: grid; place-content: center;
+  text-align: center; gap: 10px; border-radius: 12px;
+  background: rgba(255, 238, 201, .92);
+}
+.overlay[hidden] { display: none; }
+.overlay p { margin: 0; font-family: var(--display); font-size: 30px; line-height: 1.25; color: var(--browned); }
+.overlay small { color: var(--pencil); font-size: 17px; display: block; }
+
+/* memory */
+.board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 420px; }
+@media (max-width: 420px) { .board { grid-template-columns: repeat(3, 1fr); } }
+.tile {
+  aspect-ratio: 1; border: 2.5px solid var(--molasses); border-radius: 12px;
+  background: var(--greasey); cursor: pointer; padding: 0;
+  display: grid; place-items: center;
+  transition: transform .2s cubic-bezier(.3,1.5,.5,1), background-color .2s;
+}
+.tile:hover:not([disabled]) { transform: translateY(-3px); }
+.tile svg { width: 72%; height: 72%; opacity: 0; transition: opacity .18s; }
+.tile[data-face="up"] { background: var(--sheet); }
+.tile[data-face="up"] svg, .tile[data-face="done"] svg { opacity: 1; }
+.tile[data-face="done"] { background: var(--butter); border-style: dashed; cursor: default; }
+.tile[data-face="down"]::after { content: "?"; font-family: var(--hand); font-size: 26px; color: var(--molasses); }
+
+/* ---------- loyalty ---------- */
+.loyalty { padding: 28px 26px 32px; text-align: center; background: var(--sheet); border-radius: 14px; }
+.stamps { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; max-width: 460px; margin: 20px auto 0; }
+@media (max-width: 520px) { .stamps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.stamp {
+  aspect-ratio: 1; border: 2.5px dashed var(--roast); border-radius: 50%;
+  background: none; cursor: pointer; display: grid; place-items: center; padding: 0;
+  transition: transform .18s cubic-bezier(.3,1.5,.5,1), border-color .18s;
+}
+.stamp:hover { transform: scale(1.07) rotate(-4deg); }
+.stamp svg { width: 64%; height: 64%; opacity: 0; transform: scale(.4) rotate(-25deg); transition: opacity .22s, transform .3s cubic-bezier(.3,1.6,.5,1); }
+.stamp[aria-pressed="true"] { border-style: solid; border-color: var(--cherry); }
+.stamp[aria-pressed="true"] svg { opacity: 1; transform: none; }
+.reward { margin: 22px 0 0; font-family: var(--display); font-size: 30px; line-height: 1.3; color: var(--cherry); min-height: 1.3em; }
+.reset {
+  background: none; border: 0; font-family: var(--hand); font-size: 16px;
+  color: var(--pencil); text-decoration: underline; cursor: pointer; margin-top: 6px; padding: 4px 8px;
+}
+
+/* ---------- story + visit ---------- */
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 28px; align-items: start; }
+.note { padding: 26px 26px 30px; background: var(--sheet); border-radius: 14px; }
+.note p { margin: 0 0 14px; }
+.note p:last-child { margin-bottom: 0; }
+.note h3 { font-family: var(--hand); font-size: 22px; margin: 0 0 14px; color: var(--browned); }
+dl.when { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0; }
+dl.when dt { color: var(--pencil); }
+dl.when dd { margin: 0; }
+.taped {
+  display: inline-block; transform: rotate(-1.4deg); background: var(--butter);
+  padding: 4px 12px; border: 2px solid var(--molasses); border-radius: 10px; font-size: 17px;
+}
+
+footer { margin-top: 64px; text-align: center; color: var(--pencil); font-size: 17px; }
+footer .doodlerow { display: flex; justify-content: center; gap: 18px; color: var(--roast); margin-bottom: 10px; }
+
+.red { color: var(--cherry); }
+
+/* big faint doodles out in the margins; desktop only */
+.margin-doodle { position: absolute; opacity: .32; pointer-events: none; display: none; }
+@media (min-width: 1180px) { .margin-doodle { display: block; } }
+.md-1 { top: 130px;  right: -126px; transform: rotate(13deg); }
+.md-2 { top: 1240px; left: -142px;  transform: rotate(-11deg); }
+.md-3 { top: 2320px; right: -120px; transform: rotate(7deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="wobble">
+    <feTurbulence type="fractalNoise" baseFrequency="0.016" numOctaves="3" seed="9" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <defs>
+    <!-- line doodles -->
+    <!-- A square with five evenly spaced dots is a dice face, which is what the
+         first version of this read as. The bite notch says food, and three
+         off-centre chunks of different sizes say chocolate rather than pips. -->
+    <g id="d-brownie" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 27 Q36 21 55 22 C59 34 70 37 75 28 C78 22 82 23 85 30 Q89 54 81 79 Q50 86 20 80 Q13 52 18 27 Z"/>
+      <circle cx="35" cy="46" r="5.5" fill="currentColor" stroke="none"/>
+      <circle cx="58" cy="61" r="4.5" fill="currentColor" stroke="none"/>
+      <circle cx="30" cy="68" r="3.8" fill="currentColor" stroke="none"/>
+    </g>
+    <g id="d-cup" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 38 L28 82 Q29 90 38 90 L62 90 Q71 90 72 82 L78 38 Z"/>
+      <path d="M76 48 Q92 46 92 58 Q92 70 74 68"/>
+      <path d="M40 12 Q46 20 40 28"/><path d="M58 10 Q64 18 58 26"/>
+    </g>
+    <g id="d-whisk" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M50 8 L50 36"/><path d="M50 36 Q26 54 34 86 Q50 96 66 86 Q74 54 50 36 Z"/>
+      <path d="M50 36 L50 92"/><path d="M38 44 Q34 68 42 90"/><path d="M62 44 Q66 68 58 90"/>
+    </g>
+    <g id="d-heart" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M50 84 Q14 58 14 36 Q14 16 32 16 Q46 16 50 32 Q54 16 68 16 Q86 16 86 36 Q86 58 50 84 Z"/>
+    </g>
+    <g id="d-spark" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round">
+      <path d="M50 12 L50 40"/><path d="M50 60 L50 88"/><path d="M12 50 L40 50"/><path d="M60 50 L88 50"/>
+      <path d="M24 24 L38 38"/><path d="M62 62 L76 76"/><path d="M76 24 L62 38"/><path d="M38 62 L24 76"/>
+    </g>
+    <g id="d-arrow" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 56 Q38 22 72 46"/><path d="M72 46 L58 34"/><path d="M72 46 L58 60"/>
+    </g>
+
+    <!-- filled illustrations: same hand, now carrying the bakery palette -->
+    <g id="i-brownie" stroke="var(--molasses)" stroke-width="4.5" stroke-linejoin="round">
+      <path d="M18 27 Q36 21 55 22 C59 34 70 37 75 28 C78 22 82 23 85 30 Q89 54 81 79 Q50 86 20 80 Q13 52 18 27 Z" fill="var(--browned)"/>
+      <circle cx="35" cy="46" r="5.5" fill="var(--molasses)" stroke="none"/>
+      <circle cx="58" cy="61" r="4.5" fill="var(--molasses)" stroke="none"/>
+      <circle cx="30" cy="68" r="3.8" fill="var(--molasses)" stroke="none"/>
+    </g>
+    <g id="i-croissant" stroke="var(--molasses)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M14 62 Q18 34 42 30 Q56 27 62 36 Q68 27 82 32 Q94 38 90 58 Q86 72 72 70 Q60 69 56 60 Q50 70 36 72 Q20 74 14 62 Z" fill="var(--toasty)"/>
+      <path d="M38 36 Q42 50 38 68" fill="none" stroke-width="3.2"/>
+      <path d="M58 38 Q62 50 58 62" fill="none" stroke-width="3.2"/>
+      <path d="M76 36 Q80 50 76 66" fill="none" stroke-width="3.2"/>
+    </g>
+    <g id="i-cupcake" stroke="var(--molasses)" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M30 56 L36 86 Q37 92 44 92 L56 92 Q63 92 64 86 L70 56 Z" fill="var(--roast)"/>
+      <path d="M42 60 L45 88 M50 60 L50 90 M58 60 L55 88" fill="none" stroke-width="2.6"/>
+      <path d="M26 56 Q26 40 38 36 Q40 22 52 24 Q66 24 66 38 Q78 42 74 56 Z" fill="var(--greasey)"/>
+      <circle cx="50" cy="17" r="6" fill="var(--cherry)"/>
+    </g>
+    <g id="i-cake" stroke="var(--molasses)" stroke-width="4" stroke-linejoin="round">
+      <path d="M18 82 L50 20 L82 82 Z" fill="var(--butter)"/>
+      <path d="M31 56 L69 56 L77 72 L23 72 Z" fill="var(--browned)"/>
+      <circle cx="50" cy="24" r="5" fill="var(--cherry)"/>
+    </g>
+    <g id="i-cookie" stroke="var(--molasses)" stroke-width="4">
+      <circle cx="50" cy="52" r="33" fill="var(--greasey)"/>
+      <circle cx="38" cy="42" r="5" fill="var(--molasses)" stroke="none"/>
+      <circle cx="61" cy="46" r="5.5" fill="var(--molasses)" stroke="none"/>
+      <circle cx="45" cy="64" r="4.5" fill="var(--molasses)" stroke="none"/>
+      <circle cx="66" cy="66" r="4" fill="var(--molasses)" stroke="none"/>
+    </g>
+    <g id="i-cone" stroke="var(--molasses)" stroke-width="4" stroke-linejoin="round">
+      <path d="M34 52 L50 92 L66 52 Z" fill="var(--greasey)"/>
+      <path d="M39 62 L61 62 M43 72 L57 72" fill="none" stroke-width="2.6"/>
+      <circle cx="41" cy="44" r="13" fill="var(--dusty)"/>
+      <circle cx="60" cy="44" r="13" fill="var(--butter)"/>
+      <circle cx="50" cy="28" r="12" fill="var(--browned)"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="sheet">
+
+  <svg class="margin-doodle md-1" width="104" height="104" viewBox="0 0 100 100" aria-hidden="true" style="color:var(--roast)"><use href="#d-whisk"/></svg>
+  <svg class="margin-doodle md-2" width="118" height="118" viewBox="0 0 100 100" aria-hidden="true"><use href="#i-croissant"/></svg>
+  <svg class="margin-doodle md-3" width="112" height="112" viewBox="0 0 100 100" aria-hidden="true"><use href="#i-cookie"/></svg>
+
+  <header>
+    <p class="scribble-top">
+      <svg width="26" height="26" viewBox="0 0 100 100" aria-hidden="true"><use href="#d-spark"/></svg>
+      <span>West Delhi &middot; since 2026</span>
+      <svg width="26" height="26" viewBox="0 0 100 100" aria-hidden="true"><use href="#d-spark"/></svg>
+    </p>
+    <h1>Nistha&rsquo;s<br>Brownie <span class="pts">Points</span></h1>
+    <p class="tagline">A very small bakery that makes <u>one thing</u> properly.</p>
+    <div class="actions">
+      <a class="btn" href="#menu">see the menu <small>brownies, blondies, coffee</small></a>
+      <a class="btn alt" href="#games">play something <small>two very small games</small></a>
+    </div>
+  </header>
+
+  <!-- ===================== DISPLAY CASE ===================== -->
+  <section id="case">
+    <h2><svg width="42" height="42" viewBox="0 0 100 100" aria-hidden="true"><use href="#i-brownie"/></svg> the case</h2>
+    <p class="sub">What is usually sitting on the counter.</p>
+    <div class="case">
+      <figure class="boxed"><span class="edge"></span>
+        <svg viewBox="0 0 100 100" aria-hidden="true"><use href="#i-brownie"/></svg>
+        <figcaption>Fudge brownie<span class="p">&#8377;120</span></figcaption></figure>
+      <figure class="boxed"><span class="edge"></span>
+        <svg viewBox="0 0 100 100" aria-hidden="true"><use href="#i-croissant"/></svg>
+        <figcaption>Almond croissant<span class="p">&#8377;160</span></figcaption></figure>
+      <figure class="boxed"><span class="edge"></span>
+        <svg viewBox="0 0 100 100" aria-hidden="true"><use href="#i-cupcake"/></svg>
+        <figcaption>Cupcake<span class="p">&#8377;110</span></figcaption></figure>
+      <figure class="boxed"><span class="edge"></span>
+        <svg viewBox="0 0 100 100" aria-hidden="true"><use href="#i-cake"/></svg>
+        <figcaption>Cake slice<span class="p">&#8377;190</span></figcaption></figure>
+      <figure class="boxed"><span class="edge"></span>
+        <svg viewBox="0 0 100 100" aria-hidden="true"><use href="#i-cookie"/></svg>
+        <figcaption>Choc-chip cookie<span class="p">&#8377;80</span></figcaption></figure>
+      <figure class="boxed"><span class="edge"></span>
+        <svg viewBox="0 0 100 100" aria-hidden="true"><use href="#i-cone"/></svg>
+        <figcaption>Brownie sundae<span class="p">&#8377;240</span></figcaption></figure>
+    </div>
+  </section>
+
+  <!-- ===================== MENU ===================== -->
+  <section id="menu">
+    <h2><svg width="42" height="42" viewBox="0 0 100 100" aria-hidden="true" style="color:var(--roast)"><use href="#d-brownie"/></svg> today&rsquo;s bakes</h2>
+    <p class="sub">Baked each morning. When a tray is gone it is gone.</p>
+    <div class="menu-grid">
+      <div class="card boxed"><span class="edge"></span>
+        <h3><svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true"><use href="#i-brownie"/></svg> the brownies</h3>
+        <ul class="items">
+          <li><span class="nm">Classic fudge<em>dense, slightly underbaked, on purpose</em></span><span class="dots"></span><span class="pr">&#8377;120</span></li>
+          <li><span class="nm">Walnut<em>toasted, a lot of them</em></span><span class="dots"></span><span class="pr">&#8377;150</span></li>
+          <li><span class="nm">Nutella stuffed<span class="star">most ordered</span><em>molten middle, eat it warm</em></span><span class="dots"></span><span class="pr">&#8377;180</span></li>
+          <li><span class="nm">Biscoff blondie<em>for the people who say they dislike chocolate</em></span><span class="dots"></span><span class="pr">&#8377;170</span></li>
+          <li><span class="nm">Sea salt &amp; tahini<em>grown-up, a bit savoury</em></span><span class="dots"></span><span class="pr">&#8377;170</span></li>
+        </ul>
+      </div>
+      <div class="card boxed"><span class="edge"></span>
+        <h3><svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true" style="color:var(--roast)"><use href="#d-cup"/></svg> to go with it</h3>
+        <ul class="items">
+          <li><span class="nm">Filter coffee<em>strong, small, no nonsense</em></span><span class="dots"></span><span class="pr">&#8377;90</span></li>
+          <li><span class="nm">Cold coffee<em>blended, properly cold</em></span><span class="dots"></span><span class="pr">&#8377;140</span></li>
+          <li><span class="nm">Hot chocolate<em>thick enough to stand a spoon in</em></span><span class="dots"></span><span class="pr">&#8377;150</span></li>
+          <li><span class="nm">Masala chai<em>made the way it should be</em></span><span class="dots"></span><span class="pr">&#8377;70</span></li>
+        </ul>
+        <h3 style="margin-top:26px"><svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true" style="color:var(--cherry)"><use href="#d-heart"/></svg> by the box</h3>
+        <ul class="items">
+          <li><span class="nm">Box of six<em>mix and match</em></span><span class="dots"></span><span class="pr">&#8377;650</span></li>
+          <li><span class="nm">Box of twelve<em>for people you like a lot</em></span><span class="dots"></span><span class="pr">&#8377;1200</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== GAMES ===================== -->
+  <section id="games">
+    <h2><svg width="42" height="42" viewBox="0 0 100 100" aria-hidden="true" style="color:var(--roast)"><use href="#d-spark"/></svg> while you wait</h2>
+    <p class="sub">Two games. Neither will make your order arrive faster.</p>
+
+    <div class="game boxed" style="margin-bottom:28px"><span class="edge"></span>
+      <h3><svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true"><use href="#i-brownie"/></svg> catch the tray</h3>
+      <p class="how">Move the tray with your mouse, your finger, or the arrow keys. Catch the bakes, dodge the burnt ones. Three misses and service ends.</p>
+      <div class="stage">
+        <canvas id="catch" width="800" height="500" aria-label="Catch the falling bakes on your tray"></canvas>
+        <div class="overlay" id="ov">
+          <p id="ovTitle">ready when you are</p>
+          <small id="ovBody">catch the bakes &middot; dodge the burnt ones</small>
+          <div><button class="btn" id="play" type="button">start</button></div>
+        </div>
+      </div>
+      <p class="hud">
+        <span>score <b id="score">0</b></span>
+        <span>best <b id="best">0</b></span>
+        <span>trays left <b class="lives" id="lives">&#9679;&#9679;&#9679;</b></span>
+      </p>
+    </div>
+
+    <div class="game boxed"><span class="edge"></span>
+      <h3><svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true"><use href="#i-cookie"/></svg> crumb match</h3>
+      <p class="how">Six pairs hiding under the tiles. Find them all in as few turns as you can.</p>
+      <div class="board" id="board"></div>
+      <p class="hud"><span>turns <b id="turns">0</b></span><span id="matchMsg" role="status"></span></p>
+      <button class="reset" type="button" id="shuffle">shuffle and start again</button>
+    </div>
+  </section>
+
+  <!-- ===================== LOYALTY ===================== -->
+  <section id="points">
+    <h2><svg width="42" height="42" viewBox="0 0 100 100" aria-hidden="true" style="color:var(--cherry)"><use href="#d-heart"/></svg> brownie points</h2>
+    <p class="sub">Six brownies, then one on us. Tap a circle to see how it works.</p>
+    <div class="loyalty boxed"><span class="edge"></span>
+      <p style="margin:0">Nistha&rsquo;s Brownie Points &middot; <span class="red">card no. 001</span></p>
+      <div class="stamps" id="stamps"></div>
+      <p class="reward" id="reward" role="status">&nbsp;</p>
+      <button class="reset" type="button" id="resetCard">rub it out and start again</button>
+    </div>
+  </section>
+
+  <!-- ===================== STORY + VISIT ===================== -->
+  <section>
+    <div class="two">
+      <div class="note boxed"><span class="edge"></span>
+        <h3>how it started</h3>
+        <p>With one tray, one oven that runs ten degrees hot, and a flatmate who kept saying these are too good to keep giving away.</p>
+        <p>So now we sell them. Same recipe, same slightly underbaked middle, same oven.</p>
+        <p class="taped">no cake. no cupcakes. just brownies.</p>
+      </div>
+      <div class="note boxed"><span class="edge"></span>
+        <h3>come say hi</h3>
+        <dl class="when">
+          <dt>Tue to Fri</dt><dd>11am &ndash; 8pm</dd>
+          <dt>Sat &amp; Sun</dt><dd>10am &ndash; 9pm</dd>
+          <dt>Monday</dt><dd class="red">closed, we eat the leftovers</dd>
+          <dt>Where</dt><dd>West Delhi <span style="color:var(--pencil)">(full address below)</span></dd>
+        </dl>
+        <p style="margin:16px 0 0;display:flex;align-items:center;gap:10px">
+          <svg width="30" height="30" viewBox="0 0 100 100" aria-hidden="true" style="color:var(--roast)"><use href="#d-arrow"/></svg>
+          <span>Order a box the day before, please. We are small.</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="doodlerow" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 100 100"><use href="#d-whisk"/></svg>
+      <svg width="28" height="28" viewBox="0 0 100 100"><use href="#d-brownie"/></svg>
+      <svg width="28" height="28" viewBox="0 0 100 100"><use href="#d-cup"/></svg>
+    </div>
+    Nistha&rsquo;s Brownie Points &middot; West Delhi
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  function put(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  /* ------------------------- loyalty card ------------------------- */
+  (function loyalty() {
+    var wrap = document.getElementById("stamps");
+    var reward = document.getElementById("reward");
+    var LINES = ["", "one down.", "two. keep going.", "halfway.", "four. nearly.", "one more.",
+                 "that is a free brownie. come and claim it."];
+    var stamps = [];
+    for (var i = 0; i < 6; i++) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "stamp";
+      b.setAttribute("aria-pressed", "false");
+      b.setAttribute("aria-label", "Brownie point " + (i + 1));
+      b.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true" style="color:var(--cherry)"><use href="#d-brownie"/></svg>';
+      wrap.appendChild(b); stamps.push(b);
+    }
+    function count() { return stamps.filter(function (s) { return s.getAttribute("aria-pressed") === "true"; }).length; }
+    function paint() {
+      var n = count();
+      reward.textContent = LINES[n] || "";
+      if (!reward.textContent) reward.innerHTML = "&nbsp;";
+      put("nbp-stamps", String(n));
+    }
+    stamps.forEach(function (s, i) {
+      s.addEventListener("click", function () {
+        var on = s.getAttribute("aria-pressed") === "true";
+        stamps.forEach(function (o, j) { o.setAttribute("aria-pressed", (on ? j < i : j <= i) ? "true" : "false"); });
+        paint();
+      });
+    });
+    document.getElementById("resetCard").addEventListener("click", function () {
+      stamps.forEach(function (o) { o.setAttribute("aria-pressed", "false"); });
+      paint();
+    });
+    var saved = parseInt(get("nbp-stamps"), 10);
+    if (saved > 0) stamps.forEach(function (o, j) { o.setAttribute("aria-pressed", j < saved ? "true" : "false"); });
+    paint();
+  })();
+
+  /* ------------------------- game 1: catch the tray -------------------------
+     The canvas keeps a fixed 800x500 drawing space and is scaled by CSS, so the
+     game logic never depends on layout. The backing store is only reallocated
+     when the device pixel ratio changes, and the loop stops whenever the game
+     is not running or the tab is hidden.                                     */
+  (function catchGame() {
+    var cv = document.getElementById("catch");
+    if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext("2d");
+    var ov = document.getElementById("ov"),
+        ovT = document.getElementById("ovTitle"),
+        ovB = document.getElementById("ovBody"),
+        playBtn = document.getElementById("play"),
+        scoreEl = document.getElementById("score"),
+        bestEl = document.getElementById("best"),
+        livesEl = document.getElementById("lives");
+
+    var W = 800, H = 500, lastDpr = 0;
+    var tray = { x: W / 2, w: 128, h: 16 };
+    var items = [], score = 0, lives = 3, t = 0, spawn = 0;
+    var running = false, raf = 0, last = 0;
+    var best = parseInt(get("nbp-best"), 10) || 0;
+    bestEl.textContent = best;
+
+    function fit() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (dpr === lastDpr) return;
+      lastDpr = dpr;
+      cv.width = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    var KINDS = [
+      { n: "brownie", good: 1, c: "#812203", d: "#4E0705" },
+      { n: "cookie",  good: 1, c: "#FFC270", d: "#4E0705" },
+      { n: "cup",     good: 2, c: "#ED9040", d: "#4E0705" },
+      { n: "burnt",   good: 0, c: "#2a0402", d: "#4E0705" }
+    ];
+
+    function drawItem(it) {
+      var s = 36;   // the play area is 800x500, so smaller than this reads as confetti
+      ctx.save();
+      ctx.translate(it.x, it.y);
+      ctx.rotate(it.r);
+      ctx.strokeStyle = it.k.d; ctx.lineWidth = 3; ctx.fillStyle = it.k.c;
+      if (it.k.n === "cup") {
+        ctx.beginPath();
+        ctx.moveTo(-s * 0.46, -s * 0.46);
+        ctx.lineTo(-s * 0.34, s * 0.42);
+        ctx.quadraticCurveTo(-s * 0.3, s * 0.6, 0, s * 0.6);
+        ctx.quadraticCurveTo(s * 0.3, s * 0.6, s * 0.34, s * 0.42);
+        ctx.lineTo(s * 0.46, -s * 0.46);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+      } else if (it.k.n === "cookie") {
+        ctx.beginPath(); ctx.arc(0, 0, s * 0.48, 0, 6.283);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = it.k.d;
+        [[-5, -4, 3], [5, 1, 3.2], [-2, 7, 2.6], [7, 7, 2.2]].forEach(function (p) {
+          ctx.beginPath(); ctx.arc(p[0], p[1], p[2], 0, 6.283); ctx.fill();
+        });
+      } else {
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(-s / 2, -s / 2, s, s, 7);
+        else ctx.rect(-s / 2, -s / 2, s, s);
+        ctx.fill(); ctx.stroke();
+        // punch a bite out of the corner, so a brown square with dots on it
+        // stops reading as a dice face
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.beginPath(); ctx.arc(s * 0.46, -s * 0.46, s * 0.3, 0, 6.283); ctx.fill();
+        ctx.restore();
+        ctx.fillStyle = it.k.d;
+        [[-6, -2, 3.2], [3, 6, 2.8]].forEach(function (p) {
+          ctx.beginPath(); ctx.arc(p[0], p[1], p[2], 0, 6.283); ctx.fill();
+        });
+      }
+      if (it.k.good === 0) {                        // burnt ones smoke
+        ctx.strokeStyle = "#4E0705"; ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(0, -s * 0.66);
+        ctx.quadraticCurveTo(8, -s * 1.0, 0, -s * 1.34);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawTray() {
+      ctx.save();
+      ctx.strokeStyle = "#4E0705"; ctx.lineWidth = 4; ctx.fillStyle = "#BD5705";
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(tray.x - tray.w / 2, H - 58, tray.w, tray.h, 8);
+      else ctx.rect(tray.x - tray.w / 2, H - 58, tray.w, tray.h);
+      ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tray.x - tray.w / 2 - 14, H - 58); ctx.lineTo(tray.x - tray.w / 2, H - 50);
+      ctx.moveTo(tray.x + tray.w / 2 + 14, H - 58); ctx.lineTo(tray.x + tray.w / 2, H - 50);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function paintHud() {
+      scoreEl.textContent = score;
+      livesEl.textContent = "●".repeat(Math.max(0, lives)) + "○".repeat(Math.max(0, 3 - lives));
+    }
+
+    function frame(now) {
+      if (!running) return;
+      var dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016;
+      last = now; t += dt;
+      ctx.clearRect(0, 0, W, H);
+
+      spawn -= dt;
+      if (spawn <= 0) {
+        spawn = Math.max(0.32, 0.78 - t * 0.015);
+        var burnt = Math.min(0.3, 0.1 + t * 0.004);
+        var k = Math.random() < burnt ? KINDS[3] : KINDS[(Math.random() * 3) | 0];
+        items.push({ x: 44 + Math.random() * (W - 88), y: -30, k: k,
+                     v: 130 + Math.random() * 60 + t * 3.2, r: 0, vr: (Math.random() - 0.5) * 2 });
+      }
+
+      for (var i = items.length - 1; i >= 0; i--) {
+        var it = items[i];
+        it.y += it.v * dt; it.r += it.vr * dt;
+        if (it.y > H - 74 && it.y < H - 28 && Math.abs(it.x - tray.x) < tray.w / 2 + 14) {
+          if (it.k.good > 0) score += it.k.good; else lives--;
+          items.splice(i, 1); paintHud();
+          if (lives <= 0) { stop(true); return; }
+          continue;
+        }
+        if (it.y > H + 40) {
+          if (it.k.good > 0) {
+            lives--; paintHud();
+            if (lives <= 0) { items.splice(i, 1); stop(true); return; }
+          }
+          items.splice(i, 1);
+          continue;
+        }
+        drawItem(it);
+      }
+      drawTray();
+      raf = requestAnimationFrame(frame);
+    }
+
+    function start() {
+      fit();
+      items = []; score = 0; lives = 3; t = 0; spawn = 0; last = 0;
+      paintHud(); ov.hidden = true; running = true;
+      raf = requestAnimationFrame(frame);
+    }
+    function stop(over) {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      if (over) {
+        if (score > best) { best = score; put("nbp-best", String(best)); bestEl.textContent = best; }
+        ovT.textContent = score >= 25 ? "you can have a job" : "service ended";
+        ovB.textContent = "you caught " + score + ". best is " + best + ".";
+        playBtn.textContent = "go again";
+        ov.hidden = false;
+      }
+    }
+    function idle() {
+      fit();
+      ctx.clearRect(0, 0, W, H);
+      drawItem({ x: 190, y: 150, r: -0.3, k: KINDS[0] });
+      drawItem({ x: 420, y: 96,  r: 0.25, k: KINDS[1] });
+      drawItem({ x: 620, y: 175, r: -0.1, k: KINDS[2] });
+      drawTray();
+    }
+
+    playBtn.addEventListener("click", start);
+
+    function moveTo(clientX) {
+      var r = cv.getBoundingClientRect();
+      if (!r.width) return;
+      tray.x = Math.max(tray.w / 2, Math.min(W - tray.w / 2, (clientX - r.left) / r.width * W));
+      if (!running) idle();
+    }
+    cv.addEventListener("pointermove", function (e) { moveTo(e.clientX); }, { passive: true });
+    cv.addEventListener("pointerdown", function (e) { moveTo(e.clientX); }, { passive: true });
+
+    window.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      var r = cv.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight) return;   // only while on screen
+      e.preventDefault();
+      tray.x = Math.max(tray.w / 2, Math.min(W - tray.w / 2, tray.x + (e.key === "ArrowLeft" ? -46 : 46)));
+      if (!running) idle();
+    });
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden && running) { stop(false); ov.hidden = false; }
+    });
+    window.addEventListener("resize", function () { fit(); if (!running) idle(); }, { passive: true });
+
+    paintHud();
+    idle();
+  })();
+
+  /* ------------------------- game 2: crumb match ------------------------- */
+  (function memory() {
+    var board = document.getElementById("board");
+    var turnsEl = document.getElementById("turns");
+    var msg = document.getElementById("matchMsg");
+    var FACES = ["#i-brownie", "#i-croissant", "#i-cupcake", "#i-cake", "#i-cookie", "#i-cone"];
+    var first = null, lock = false, turns = 0, found = 0;
+
+    function deal() {
+      var deck = FACES.concat(FACES);
+      for (var i = deck.length - 1; i > 0; i--) {          // Fisher-Yates
+        var j = (Math.random() * (i + 1)) | 0;
+        var tmp = deck[i]; deck[i] = deck[j]; deck[j] = tmp;
+      }
+      board.innerHTML = "";
+      first = null; lock = false; turns = 0; found = 0;
+      turnsEl.textContent = "0"; msg.textContent = "";
+      deck.forEach(function (face, idx) {
+        var b = document.createElement("button");
+        b.type = "button"; b.className = "tile";
+        b.dataset.face = "down"; b.dataset.id = face;
+        b.setAttribute("aria-label", "Tile " + (idx + 1));
+        b.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true"><use href="' + face + '"/></svg>';
+        b.addEventListener("click", function () { flip(b); });
+        board.appendChild(b);
+      });
+    }
+
+    function flip(b) {
+      if (lock || b.dataset.face !== "down") return;
+      b.dataset.face = "up";
+      if (!first) { first = b; return; }
+      turns++; turnsEl.textContent = turns;
+      if (first.dataset.id === b.dataset.id) {
+        first.dataset.face = "done"; b.dataset.face = "done";
+        first.disabled = true; b.disabled = true;
+        first = null; found++;
+        if (found === FACES.length) {
+          msg.textContent = turns <= 9 ? "in " + turns + " turns. show-off." : "all six, in " + turns + " turns.";
+        }
+      } else {
+        lock = true;
+        var a = first; first = null;
+        setTimeout(function () {
+          a.dataset.face = "down"; b.dataset.face = "down"; lock = false;
+        }, reduce.matches ? 400 : 760);
+      }
+    }
+
+    document.getElementById("shuffle").addEventListener("click", deal);
+    deal();
+  })();
+})();
+</script>
+
+</body></html>

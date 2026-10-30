@@ -1,0 +1,14 @@
+# Netlify reads this when the site is deployed from GitHub.
+# There is no build step: the site is plain HTML, so Netlify just
+# serves this folder exactly as it is.
+
+[build]
+  publish = "."
+  command = ""
+
+# Long cache on the heavy pages, no cache on the entry page, so a
+# redeploy always shows the visitor the newest galaxy.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

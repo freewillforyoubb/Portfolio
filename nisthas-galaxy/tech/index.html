@@ -1,0 +1,598 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mothwing</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=IBM+Plex+Sans:wght@400;500&family=VT323&display=swap">
+
+<style>
+/* Layout: a CRT terminal boots a fake operating system; pressing Enter
+   switches the tube off and drops you into a WebGL tunnel. The story is
+   ordinary DOM text in full-height sections over a fixed canvas, and scroll
+   position drives the camera down the tunnel, so the words are always real
+   text and the page still reads if WebGL never arrives.
+   One committed dark phosphor world, so no light variant; colours explicit. */
+:root {
+  --void:     #040604;
+  --glass:    rgba(6, 12, 8, .78);
+  --phosphor: #5dff9b;
+  --phos-dim: #2f9a5e;
+  --ink:      #e6efe8;
+  --dim:      #93a598;
+  --line:     rgba(93, 255, 155, .22);
+  --amber:    #ffb347;
+
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --term: "VT323", ui-monospace, "SF Mono", Menlo, monospace;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--void); }
+body {
+  margin: 0; background: var(--void); color: var(--ink);
+  font-family: var(--body); font-size: 17px; line-height: 1.6;
+}
+body.booting { overflow: hidden; height: 100%; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--phosphor); outline-offset: 3px; }
+
+/* the tube: scanlines and a vignette over everything, never blocking input */
+.crt::before, .crt::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
+}
+.crt::before {
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px);
+  mix-blend-mode: multiply;
+}
+.crt::after {
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.62) 100%);
+}
+
+/* ---------------- boot ---------------- */
+#boot {
+  position: fixed; inset: 0; z-index: 40; background: #020402;
+  font-family: var(--term); font-size: clamp(17px, 1.75vw, 23px); line-height: 1.32;
+  color: var(--phosphor); text-shadow: 0 0 6px rgba(93,255,155,.55);
+  padding: clamp(28px, 7vw, 110px) clamp(18px, 7vw, 110px);
+  overflow: hidden;
+  transform-origin: center;
+}
+#boot .hdr { color: var(--phos-dim); }
+#bootLog { white-space: pre; margin: 0; overflow: hidden; }
+@media (max-width: 640px) { #bootLog { white-space: pre-wrap; font-size: 15px; } }
+.prompt { margin-top: 26px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cursor { display: inline-block; width: .62em; height: 1.05em; background: var(--phosphor); vertical-align: -3px; animation: blink 1s steps(1) infinite; box-shadow: 0 0 10px rgba(93,255,155,.6); }
+@keyframes blink { 50% { opacity: 0; } }
+#bootBtn {
+  font-family: var(--term); font-size: inherit; color: #021; background: var(--phosphor);
+  border: 0; padding: 2px 14px; cursor: pointer; box-shadow: 0 0 18px rgba(93,255,155,.45);
+}
+#bootBtn[disabled] { background: var(--phos-dim); box-shadow: none; cursor: wait; }
+.flick { animation: flick 4.2s infinite; }
+@keyframes flick { 0%,100% { opacity: 1; } 47% { opacity: 1; } 48% { opacity: .82; } 49% { opacity: 1; } 76% { opacity: .9; } 77% { opacity: 1; } }
+
+/* the tube switching off: collapse to a line, then to a dot */
+#boot.off { animation: crtoff .62s cubic-bezier(.6,0,.4,1) forwards; }
+@keyframes crtoff {
+  0%   { transform: scale(1, 1); filter: brightness(1); }
+  40%  { transform: scale(1, .006); filter: brightness(3); }
+  75%  { transform: scale(.25, .004); filter: brightness(4); }
+  100% { transform: scale(0, 0); filter: brightness(6); opacity: 0; }
+}
+
+/* ---------------- scene + story ---------------- */
+#gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; z-index: 0; }
+
+.hud {
+  position: fixed; left: 0; right: 0; top: 0; z-index: 10; pointer-events: none;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 18px clamp(16px, 3vw, 34px);
+  font-family: var(--term); font-size: 19px; color: var(--phos-dim); letter-spacing: .04em;
+}
+.hud b { color: var(--phosphor); font-weight: normal; }
+.hud .r { display: flex; gap: 10px; align-items: center; pointer-events: auto; }
+.tbtn {
+  font-family: var(--term); font-size: 18px; letter-spacing: .04em;
+  background: rgba(4,8,5,.6); color: var(--phosphor); border: 1px solid var(--line);
+  padding: 2px 12px; cursor: pointer;
+}
+.tbtn:hover, .tbtn[aria-pressed="true"] { border-color: var(--phosphor); }
+.progress { position: fixed; left: 0; top: 0; height: 2px; width: 0; background: var(--phosphor); z-index: 11; box-shadow: 0 0 8px var(--phosphor); }
+
+main { position: relative; z-index: 5; }
+.room {
+  min-height: 100vh; display: flex; align-items: center;
+  padding: 90px clamp(16px, 6vw, 96px);
+}
+.panel {
+  width: min(560px, 100%); background: var(--glass); border: 1px solid var(--line);
+  padding: clamp(22px, 3vw, 36px);
+  backdrop-filter: none;
+}
+.tag {
+  font-family: var(--term); font-size: 20px; color: var(--phosphor); letter-spacing: .06em;
+  margin: 0 0 14px;
+}
+.tag::before { content: "> "; color: var(--phos-dim); }
+h1, h2 { font-family: var(--display); font-weight: 800; letter-spacing: -.02em; line-height: 1.02; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(46px, 9vw, 112px); }
+h2 { font-size: clamp(30px, 4.6vw, 56px); }
+h1 .glow, h2 .glow { color: var(--phosphor); text-shadow: 0 0 22px rgba(93,255,155,.45); }
+.panel p { color: #cfdad2; margin: 18px 0 0; max-width: 46ch; }
+.panel p.lead { font-size: 19px; color: var(--ink); }
+
+.hero .panel { background: none; border: 0; padding: 0; width: min(760px, 100%); }
+.hero .scroll-cue { font-family: var(--term); font-size: 20px; color: var(--phos-dim); margin-top: 34px; }
+.hero .scroll-cue span { display: inline-block; animation: bob 1.6s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(5px); } }
+
+.steps { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 14px; counter-reset: s; }
+.steps li { border-top: 1px solid var(--line); padding-top: 12px; }
+.steps b { font-family: var(--term); font-size: 22px; color: var(--phosphor); font-weight: normal; display: block; }
+.steps span { color: #c6d2c9; font-size: 15.5px; }
+
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 22px; margin-top: 24px; }
+.stats div { border-top: 1px solid var(--line); padding-top: 10px; }
+.stats b { display: block; font-family: var(--display); font-weight: 600; font-size: clamp(30px, 4vw, 44px); color: var(--phosphor); line-height: 1.05; font-variant-numeric: tabular-nums; }
+.stats span { font-size: 14.5px; color: var(--dim); }
+
+form { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+input[type=email] {
+  flex: 1 1 220px; min-width: 0; font-family: var(--term); font-size: 21px;
+  background: #020402; color: var(--phosphor); border: 1px solid var(--line); padding: 8px 12px;
+}
+input[type=email]::placeholder { color: var(--phos-dim); }
+.go {
+  font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: .04em;
+  background: var(--phosphor); color: #021; border: 0; padding: 12px 20px; cursor: pointer;
+}
+.go:hover { filter: brightness(1.1); }
+#formMsg { font-family: var(--term); font-size: 20px; color: var(--phosphor); min-height: 1.4em; margin: 12px 0 0; }
+
+footer {
+  position: relative; z-index: 5; padding: 40px clamp(16px, 6vw, 96px) 60px;
+  font-family: var(--term); font-size: 18px; color: var(--phos-dim);
+  display: flex; flex-wrap: wrap; gap: 8px 26px; justify-content: space-between;
+}
+
+/* alternate sides on wide screens so the 3D object has room opposite the text */
+@media (min-width: 900px) {
+  .room.right { justify-content: flex-end; }
+}
+
+/* phones: the object sits behind the copy, so give the copy a dark halo */
+@media (max-width: 899px) {
+  .hero .panel { background: radial-gradient(ellipse at 40% 50%, rgba(4,6,4,.82), rgba(4,6,4,0) 75%); }
+  .panel p, .hero h1 { text-shadow: 0 0 10px #040604, 0 0 3px #040604; }
+}
+
+/* no WebGL: still a complete page on a dark ground */
+html.no-gl #gl { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
+</style>
+
+<div class="crt">
+
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+
+<div class="hud" aria-hidden="false">
+  <span>MOTHWING <b>OS 26.10</b></span>
+  <span class="r">
+    <span id="roomLbl" style="color:var(--phos-dim)">ROOM 0/5</span>
+    <button class="tbtn" id="sound" type="button" aria-pressed="false">SOUND OFF</button>
+  </span>
+</div>
+
+<main id="story">
+  <section class="room hero" data-room="0">
+    <div class="panel">
+      <p class="tag">mothwing systems</p>
+      <h1>Small minds,<br><span class="glow">kept close.</span></h1>
+      <p class="lead">AI models small enough to live on your phone, and good enough that you stop noticing they are there.</p>
+      <p class="scroll-cue">scroll to descend <span>&darr;</span></p>
+    </div>
+  </section>
+
+  <section class="room right" data-room="1">
+    <div class="panel">
+      <p class="tag">room 01 / privacy</p>
+      <h2>Nothing <span class="glow">leaves</span> the device.</h2>
+      <p>Wick runs entirely on your phone&rsquo;s own chip. No server, no account, no upload. Ask it about your medical results or your bank statement and the question never touches a network.</p>
+    </div>
+  </section>
+
+  <section class="room" data-room="2">
+    <div class="panel">
+      <p class="tag">room 02 / size</p>
+      <h2>Forty <span class="glow">megabytes.</span></h2>
+      <p>Smaller than the photos from your last holiday. Wick answers in under eighty milliseconds and works the same in a tunnel, on a plane, or in a village with one bar of signal.</p>
+    </div>
+  </section>
+
+  <section class="room right" data-room="3">
+    <div class="panel">
+      <p class="tag">room 03 / how it fits</p>
+      <h2>Three steps to <span class="glow">small.</span></h2>
+      <ol class="steps">
+        <li><b>01 distil</b><span>A large teacher model trains a small student on exactly the tasks people use a phone assistant for.</span></li>
+        <li><b>02 quantise</b><span>Weights drop to four bits, with the layers that matter most kept wider.</span></li>
+        <li><b>03 ship</b><span>The model compiles for each phone&rsquo;s neural engine, so it runs where the chip is fastest.</span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="room" data-room="4">
+    <div class="panel">
+      <p class="tag">room 04 / numbers</p>
+      <h2>The <span class="glow">specs.</span></h2>
+      <div class="stats">
+        <div><b>40 MB</b><span>model on disk</span></div>
+        <div><b>78 ms</b><span>median reply on a mid-range phone</span></div>
+        <div><b>0</b><span>servers your words pass through</span></div>
+        <div><b>11</b><span>languages, including Hindi and Tamil</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="room right" data-room="5">
+    <div class="panel">
+      <p class="tag">room 05 / early access</p>
+      <h2>Get <span class="glow">Wick</span> first.</h2>
+      <p>The first ten thousand phones get it before anyone else. Leave an email and we will write once, when it is ready.</p>
+      <form id="wait" novalidate>
+        <label for="email" style="position:absolute;left:-9999px">Email address</label>
+        <input id="email" type="email" placeholder="you@somewhere.com" autocomplete="email" required>
+        <button class="go" type="submit">Join the list</button>
+      </form>
+      <p id="formMsg" role="status"></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>MOTHWING SYSTEMS &middot; 2026</span>
+  <span>Mothwing is a fictional company, made as a design study.</span>
+</footer>
+
+<div id="boot" role="dialog" aria-label="System boot">
+  <div class="flick">
+    <pre id="bootLog"></pre>
+    <div class="prompt">
+      <span id="pressMsg">booting</span><span class="cursor"></span>
+      <button id="bootBtn" type="button" disabled>ENTER</button>
+      <span style="color:var(--phos-dim)">to boot</span>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (i) { return document.getElementById(i); };
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+  document.body.classList.add("booting");
+
+  /* ================= sound: synthesised, off until asked ================= */
+  var ac = null, master = null, soundOn = false, beatT = 0;
+  function initAudio() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    ac = new AC(); master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+    var lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900; lp.connect(master);
+    [[49, "sawtooth", .08], [73.4, "sine", .25], [98, "sine", .12]].forEach(function (v) {
+      var o = ac.createOscillator(); o.type = v[1]; o.frequency.value = v[0];
+      var g = ac.createGain(); g.gain.value = v[2]; o.connect(g); g.connect(lp); o.start();
+    });
+    // a soft kick at 174 bpm, like the reference's clock
+    var period = 60 / 174 * 2;
+    function kick() {
+      if (!ac) return;
+      var t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t + .18);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.5, t + .005);
+      g.gain.exponentialRampToValueAtTime(.0001, t + .32);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + .34);
+    }
+    beatT = setInterval(kick, period * 1000);
+    return true;
+  }
+  function beep(f, d) {
+    if (!soundOn || !ac) return;
+    var t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+    o.type = "square"; o.frequency.value = f || 1200;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .005);
+    g.gain.exponentialRampToValueAtTime(.0001, t + (d || .06));
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + (d || .06) + .02);
+  }
+  function setSound(on) {
+    if (on && !ac && !initAudio()) return;
+    soundOn = on;
+    var b = $("sound"); b.setAttribute("aria-pressed", String(on)); b.textContent = on ? "SOUND ON" : "SOUND OFF";
+    if (ac) {
+      if (on && ac.state === "suspended") ac.resume();
+      master.gain.cancelScheduledValues(ac.currentTime);
+      master.gain.linearRampToValueAtTime(on ? .14 : 0, ac.currentTime + 1);
+    }
+  }
+  $("sound").addEventListener("click", function () { setSound(!soundOn); });
+
+  /* ================= boot sequence ================= */
+  var log = $("bootLog");
+  var HEAD = [
+    "MOTHWING OS 26.10  ·  TTY1  ·  (C) 2026 MOTHWING SYSTEMS",
+    "CLOCK 174 BPM  ·  GPU WEBGL " + (window.WebGLRenderingContext ? "OK" : "MISSING") + "  ·  MEM 4096M OK",
+    ""
+  ];
+  var TASKS = [
+    ["loading weights", 24, "MB", 38.6],
+    ["loading tokenizer", 6, "KB", 412],
+    ["loading audio", 12, "KB", 96],
+    ["compiling shaders", 9, "", 0],
+    ["warming WICK", 1, "", 0],
+    ["building [CORE]", 1, "", 0],
+    ["building [SWARM]", 1, "", 0],
+    ["mounting /rooms", 5, "", 0]
+  ];
+  var state = TASKS.map(function () { return 0; });
+  var sceneReady = false, logDone = false;
+
+  function bar(frac) {
+    var n = Math.round(frac * 10);
+    return "[" + "##########".slice(0, n) + "          ".slice(0, 10 - n) + "]";
+  }
+  function pad(s, n) { s = String(s); while (s.length < n) s += " "; return s; }
+  function lpad(s, n) { s = String(s); while (s.length < n) s = " " + s; return s; }
+  function dots(name) { var d = 30 - name.length; return " " + new Array(Math.max(2, d)).join("."); }
+
+  function paintLog() {
+    var lines = HEAD.slice();
+    TASKS.forEach(function (t, i) {
+      var cur = state[i], frac = cur / t[1];
+      var row = pad(t[0] + dots(t[0]), 32) + lpad(cur + "/" + t[1], 7);
+      if (t[2]) row += "    " + bar(frac) + "  " + lpad((t[3] * frac).toFixed(t[2] === "MB" ? 1 : 0), 6) + " " + t[2];
+      else if (cur >= t[1]) row += "    ok";
+      lines.push(row);
+    });
+    log.textContent = lines.join("\n");
+  }
+
+  var step = 0;
+  var bootTick = setInterval(function () {
+    // advance the first unfinished task, a little out of order like a real loader
+    var open = state.map(function (v, i) { return v < TASKS[i][1] ? i : -1; }).filter(function (i) { return i >= 0; });
+    if (!open.length) {
+      clearInterval(bootTick); logDone = true; maybeReady(); return;
+    }
+    var i = open[Math.random() < .7 ? 0 : Math.min(open.length - 1, 1)];
+    state[i] = Math.min(TASKS[i][1], state[i] + 1 + Math.floor(Math.random() * 3));
+    paintLog();
+    if (++step % 3 === 0) beep(900 + Math.random() * 700, .03);
+  }, reduce ? 20 : 70);
+  paintLog();
+
+  // Enter only unlocks once the log is done AND the 3D scene genuinely exists,
+  // so the boot screen is honest about when the world is ready.
+  function maybeReady() {
+    if (!logDone || !sceneReady) return;
+    $("pressMsg").textContent = "ready";
+    var b = $("bootBtn"); b.disabled = false; b.focus({ preventScroll: true });
+  }
+
+  var booted = false;
+  function boot() {
+    if (booted || $("bootBtn").disabled) return;
+    booted = true;
+    beep(440, .2);
+    var bootEl = $("boot");
+    if (reduce) { bootEl.style.display = "none"; finish(); return; }
+    bootEl.classList.add("off");
+    setTimeout(function () { bootEl.style.display = "none"; finish(); }, 640);
+  }
+  function finish() {
+    document.body.classList.remove("booting");
+    window.scrollTo(0, 0);
+    startLoop();
+  }
+  $("bootBtn").addEventListener("click", boot);
+  window.addEventListener("keydown", function (e) { if (e.key === "Enter" && !booted) { e.preventDefault(); boot(); } });
+
+  /* ================= waitlist, handled in the page ================= */
+  $("wait").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var v = $("email").value.trim(), msg = $("formMsg");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) { msg.textContent = "> that does not look like an email address. try again."; return; }
+    msg.textContent = "> noted. this is a demo, so nothing was sent anywhere.";
+    beep(1320, .12);
+  });
+
+  /* ================= the tunnel ================= */
+  var renderer, scene, camera, objs = [], tunnel, swarm, rafId = 0, running = false;
+  var ROOM_Z = [-6, -62, -119, -175, -232, -288];
+  var camZ = 8, camZTarget = 8, mx = 0, my = 0, px = 0, py = 0, lastT = 0, clock = 0, lastRoom = -1;
+  var GREEN = 0x5dff9b, AMBER = 0xffb347;
+
+  function glowTexture(color) {
+    var c = document.createElement("canvas"); c.width = c.height = 128;
+    var g = c.getContext("2d"), r = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    r.addColorStop(0, color.replace("A", ".9")); r.addColorStop(.35, color.replace("A", ".25")); r.addColorStop(1, color.replace("A", "0"));
+    g.fillStyle = r; g.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);
+  }
+  function glow(tex, size) {
+    var s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    s.scale.set(size, size, 1); return s;
+  }
+  function wire(geo, color, op) {
+    return new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: color, transparent: true, opacity: op == null ? .9 : op }));
+  }
+
+  function build() {
+    var narrow = window.innerWidth < 900;
+    renderer = new THREE.WebGLRenderer({ canvas: $("gl"), antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setClearColor(0x040604, 1);
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x040604, 8, 72);
+    camera = new THREE.PerspectiveCamera(62, 1, .1, 200);
+
+    var gTex = glowTexture("rgbaA".replace("rgbaA", "rgba(93,255,155,A)"));
+    var aTex = glowTexture("rgba(255,179,71,A)");
+
+    // the tunnel: rings of light every few units, all the way down
+    tunnel = new THREE.Group();
+    for (var z = 12, k = 0; z > -310; z -= 5.2, k++) {
+      var pts = [], N = 64, r = 9 + Math.sin(k * .4) * .6;
+      for (var j = 0; j <= N; j++) { var a = j / N * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r * .72, z)); }
+      tunnel.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({ color: k % 6 === 0 ? AMBER : GREEN, transparent: true, opacity: k % 6 === 0 ? .55 : .2 })));
+    }
+    // dust in the walls
+    var D = 1600, dp = new Float32Array(D * 3);
+    for (var i = 0; i < D; i++) {
+      var ang = Math.random() * Math.PI * 2, rr = 6 + Math.random() * 6;
+      dp[i*3] = Math.cos(ang) * rr; dp[i*3+1] = Math.sin(ang) * rr * .72; dp[i*3+2] = 12 - Math.random() * 320;
+    }
+    var dg = new THREE.BufferGeometry(); dg.setAttribute("position", new THREE.BufferAttribute(dp, 3));
+    tunnel.add(new THREE.Points(dg, new THREE.PointsMaterial({ color: GREEN, size: .07, transparent: true, opacity: .7 })));
+    scene.add(tunnel);
+
+    var side = function (i) { return narrow ? 0 : (i % 2 ? -3.6 : 3.6); };   // opposite the text column
+
+    // room 0, the core
+    var core = new THREE.Group();
+    core.add(wire(new THREE.IcosahedronGeometry(2.1, 1), GREEN));
+    var inner = new THREE.Mesh(new THREE.IcosahedronGeometry(1.15, 0), new THREE.MeshBasicMaterial({ color: GREEN, wireframe: false, transparent: true, opacity: .16 }));
+    core.add(inner); core.add(glow(gTex, 7));
+    core.position.set(side(0), .2, ROOM_Z[0]); scene.add(core);
+    objs.push({ g: core, spin: [.18, .26] });
+
+    // room 1, a phone with the light locked inside it
+    var phone = new THREE.Group();
+    phone.add(wire(new THREE.BoxGeometry(2.4, 4.6, .45), GREEN));
+    phone.add(wire(new THREE.BoxGeometry(2.0, 3.9, .1), GREEN, .35));
+    var dot = new THREE.Mesh(new THREE.SphereGeometry(.38, 16, 16), new THREE.MeshBasicMaterial({ color: AMBER }));
+    phone.add(dot); phone.add(glow(aTex, 4.5));
+    phone.position.set(side(1), 0, ROOM_Z[1]); scene.add(phone);
+    objs.push({ g: phone, spin: [0, .35], pulse: dot });
+
+    // room 2, the model as a small swarm of points
+    var S = 900, sp = new Float32Array(S * 3), golden = Math.PI * (3 - Math.sqrt(5));
+    for (var s = 0; s < S; s++) {
+      var y = 1 - (s / (S - 1)) * 2, rad = Math.sqrt(1 - y * y), th = golden * s;
+      sp[s*3] = Math.cos(th) * rad * 2.2; sp[s*3+1] = y * 2.2; sp[s*3+2] = Math.sin(th) * rad * 2.2;
+    }
+    var sg = new THREE.BufferGeometry(); sg.setAttribute("position", new THREE.BufferAttribute(sp, 3));
+    swarm = new THREE.Points(sg, new THREE.PointsMaterial({ color: GREEN, size: .07 }));
+    var sw = new THREE.Group(); sw.add(swarm); sw.add(glow(gTex, 6));
+    sw.position.set(side(2), 0, ROOM_Z[2]); scene.add(sw);
+    objs.push({ g: sw, spin: [.1, .22], breathe: true });
+
+    // room 3, three stages: big, smaller, smallest
+    var three = new THREE.Group();
+    [[1.5, -2.6], [1.0, 0], [.6, 2.1]].forEach(function (c, idx) {
+      var m = wire(new THREE.BoxGeometry(c[0], c[0], c[0]), idx === 2 ? AMBER : GREEN);
+      m.position.x = narrow ? (c[1] * .7) : c[1]; m.userData.ph = idx; three.add(m);
+    });
+    three.position.set(side(3), 0, ROOM_Z[3]); scene.add(three);
+    objs.push({ g: three, spin: [0, .12], kids: true });
+
+    // room 4, the numbers as columns
+    var cols = new THREE.Group();
+    [.9, 2.6, .15, 1.7].forEach(function (h, idx) {
+      var b = wire(new THREE.BoxGeometry(.6, h * 1.4, .6), idx === 1 ? AMBER : GREEN);
+      b.position.set((idx - 1.5) * 1.05, h * .7 - 1.4, 0); cols.add(b);
+    });
+    cols.position.set(side(4), 0, ROOM_Z[4]); scene.add(cols);
+    objs.push({ g: cols, spin: [0, .3] });
+
+    // room 5, the light at the end
+    var knot = new THREE.Group();
+    knot.add(new THREE.Mesh(new THREE.TorusKnotGeometry(1.5, .18, 160, 12, 2, 3), new THREE.MeshBasicMaterial({ color: AMBER, wireframe: true, transparent: true, opacity: .75 })));
+    knot.add(glow(aTex, 8));
+    knot.position.set(side(5), 0, ROOM_Z[5]); scene.add(knot);
+    objs.push({ g: knot, spin: [.2, .3] });
+
+    resize();
+    renderer.render(scene, camera);   // a real first frame behind the boot screen
+  }
+
+  function resize() {
+    if (!renderer) return;
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  }
+
+  function scrollFrac() {
+    var span = document.documentElement.scrollHeight - window.innerHeight;
+    return span > 0 ? Math.min(1, Math.max(0, window.scrollY / span)) : 0;
+  }
+
+  function frame(now) {
+    if (!running) return;
+    var dt = lastT ? Math.min((now - lastT) / 1000, .05) : .016;
+    lastT = now; clock += dt;
+
+    var f = scrollFrac();
+    $("progress").style.width = (f * 100) + "%";
+    // camera z follows scroll; each room sits about 14 units ahead of its stop
+    camZTarget = 8 - f * 282;
+    var k = 1 - Math.pow(.004, dt);
+    camZ += (camZTarget - camZ) * k;
+    px += (mx - px) * (1 - Math.pow(.05, dt));
+    py += (my - py) * (1 - Math.pow(.05, dt));
+    camera.position.set(px * 1.4, -py * .9, camZ);
+    camera.lookAt(px * .6, -py * .4, camZ - 20);
+
+    var room = Math.round(f * 5);
+    if (room !== lastRoom) { lastRoom = room; $("roomLbl").textContent = "ROOM " + room + "/5"; if (clock > 1) beep(700 + room * 120, .05); }
+
+    var m = reduce ? .25 : 1;
+    objs.forEach(function (o) {
+      o.g.rotation.x += o.spin[0] * dt * m;
+      o.g.rotation.y += o.spin[1] * dt * m;
+      if (o.pulse) o.pulse.scale.setScalar(1 + Math.sin(clock * 3) * .18 * m);
+      if (o.breathe && swarm) swarm.scale.setScalar(1 + Math.sin(clock * 1.6) * .06 * m);
+      if (o.kids) o.g.children.forEach(function (c) { c.position.y = Math.sin(clock * 1.8 + c.userData.ph) * .35 * m; });
+    });
+
+    renderer.render(scene, camera);
+    rafId = requestAnimationFrame(frame);
+  }
+  function startLoop() { if (running || !renderer) return; running = true; lastT = 0; rafId = requestAnimationFrame(frame); }
+  function stopLoop() { running = false; if (rafId) cancelAnimationFrame(rafId); rafId = 0; }
+
+  window.addEventListener("pointermove", function (e) {
+    mx = (e.clientX / window.innerWidth) * 2 - 1;
+    my = (e.clientY / window.innerHeight) * 2 - 1;
+  }, { passive: true });
+  window.addEventListener("resize", resize, { passive: true });
+  document.addEventListener("visibilitychange", function () { if (document.hidden) stopLoop(); else if (booted) startLoop(); });
+
+  // build the world while the boot log runs
+  setTimeout(function () {
+    try {
+      if (typeof THREE === "undefined") throw new Error("three missing");
+      build();
+    } catch (err) {
+      root.classList.add("no-gl");
+      HEAD[1] = "CLOCK 174 BPM  ·  GPU WEBGL MISSING  ·  FALLING BACK TO TEXT";
+      paintLog();
+    }
+    sceneReady = true; maybeReady();
+  }, 60);
+})();
+</script>
+
+</body></html>

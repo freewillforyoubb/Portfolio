@@ -1,0 +1,904 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Nistha&#8217;s Galaxy</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* Layout: a full-bleed 3D scene with a thin inset frame of HUD chrome over it.
+   Every planet is also a row in a plain list view, one toggle away, because a
+   portfolio that can only be read by flying around is a portfolio nobody reads.
+   Committed single dark world, so no light variant; all colours explicit. */
+:root {
+  --void:   #06080d;
+  --panel:  rgba(10, 14, 21, .92);
+  --ink:    #eceee5;
+  --dim:    #8d94a1;
+  --faint:  #5a616e;
+  --line:   rgba(236, 238, 229, .16);
+  --accent: #f0a23c;
+
+  --sans: "DM Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow: hidden;
+}
+body.listing { overflow: auto; }
+
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.lbl {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+/* ---------------- scene ---------------- */
+#scene { position: fixed; inset: 0; display: block; width: 100%; height: 100%; touch-action: none; }
+#fallback {
+  position: fixed; inset: 0; display: none; place-content: center; text-align: center;
+  padding: 24px; color: var(--dim);
+}
+
+/* ---------------- HUD frame ---------------- */
+.frame {
+  position: fixed; inset: 14px;
+  border: 1px solid var(--line);
+  pointer-events: none;
+  z-index: 2;
+}
+@media (max-width: 640px) { .frame { inset: 8px; } }
+
+.hud {
+  position: fixed; inset: 14px;
+  z-index: 3;
+  pointer-events: none;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+@media (max-width: 640px) { .hud { inset: 8px; } }
+.hud > * { pointer-events: none; }
+.hud button, .hud a { pointer-events: auto; }
+
+.hud-top {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+  padding: 18px 20px;
+}
+.ident strong { display: block; font-size: 15px; font-weight: 500; letter-spacing: .02em; }
+.ident span { display: block; margin-top: 2px; }
+
+.hud-mid { display: flex; align-items: center; justify-content: flex-start; }
+
+.hud-bot {
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
+  padding: 16px 20px;
+}
+
+.ghost {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--ink); background: none; border: 1px solid var(--line);
+  padding: 8px 14px; cursor: pointer; transition: border-color .2s, color .2s;
+}
+.ghost:hover { border-color: var(--accent); color: var(--accent); }
+.ghost[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+
+/* ---------------- planet labels, projected from 3D ---------------- */
+#labels { position: fixed; inset: 0; z-index: 2; pointer-events: none; }
+.plabel {
+  position: absolute; transform: translate(-50%, -50%);
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--ink); white-space: nowrap; pointer-events: auto; cursor: pointer;
+  background: rgba(6, 8, 13, .78); border: 0; padding: 5px 9px; border-radius: 2px;
+  opacity: .86; transition: opacity .2s, color .2s;
+}
+.plabel::before {
+  content: ""; display: inline-block; width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor; margin-right: 7px; vertical-align: 1px;
+}
+.plabel:hover, .plabel[data-active="true"] { opacity: 1; color: var(--accent); }
+
+/* ---------------- detail panel ---------------- */
+#detail {
+  position: fixed; top: 14px; right: 14px; bottom: 14px; width: min(420px, calc(100% - 28px));
+  background: var(--panel); border: 1px solid var(--line);
+  z-index: 5; overflow-y: auto; padding: 26px 26px 34px;
+  transform: translateX(calc(100% + 20px));
+  transition: transform .5s cubic-bezier(.22,1,.26,1);
+}
+#detail.open { transform: none; }
+#detail { top: auto; bottom: 14px; height: auto; max-height: calc(100% - 28px); }
+@media (max-width: 640px) { #detail { height: auto; } }
+.launch {
+  display: inline-flex; align-items: center; gap: 10px; margin-top: 20px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--void); background: var(--accent); text-decoration: none; padding: 12px 18px;
+  transition: filter .2s;
+}
+.launch:hover { filter: brightness(1.12); }
+a.plabel { text-decoration: none; }
+.row h2 a { text-decoration: none; border-bottom: 1px solid var(--line); }
+.row h2 a:hover { color: var(--accent); border-color: var(--accent); }
+.choices { display: grid; gap: 10px; margin-top: 20px; }
+.choice {
+  display: block; text-decoration: none; padding: 14px 16px 15px;
+  border: 1px solid var(--line); border-left: 3px solid var(--c);
+  transition: border-color .2s, background .2s;
+}
+.choice:hover, .choice:focus-visible { border-color: var(--c); background: rgba(255,255,255,.04); }
+.choice b { display: block; font-weight: 500; font-size: 18px; margin-top: 2px; }
+.choice:hover b { color: var(--c); }
+.choice .note { display: block; color: var(--dim); font-size: 13.5px; margin-top: 3px; }
+.row .pick { border-bottom: 1px solid var(--line); text-decoration: none; }
+.row .pick:hover { color: var(--accent); }
+/* the panel sits over the top-right and bottom-right HUD, so push them clear */
+@media (min-width: 641px) {
+  body.detail-open .hud-bot { padding-right: calc(min(420px, 100% - 28px) + 30px); }
+}
+@media (max-width: 640px) {
+  #detail { top: auto; height: 68%; right: 8px; left: 8px; bottom: 8px; width: auto;
+            transform: translateY(calc(100% + 20px)); }
+}
+
+#detailBody > .lbl:first-child { padding-right: 72px; }   /* clear the close button */
+#detail h2 { font-size: 27px; font-weight: 400; letter-spacing: -.01em; margin: 10px 0 2px; line-height: 1.15; }
+#detail .tag { color: var(--accent); }
+.meta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+#detail h3 {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--faint); margin: 24px 0 7px; font-weight: 400;
+}
+#detail p { margin: 0 0 12px; color: #d2d6cf; }
+#detail p:last-child { margin-bottom: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; padding: 0; list-style: none; }
+.chips li {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+  color: var(--dim); border: 1px solid var(--line); padding: 3px 9px;
+}
+.moons { list-style: none; margin: 0; padding: 0; }
+.moons li { padding: 8px 0; border-top: 1px solid var(--line); }
+.moons li b { display: block; font-weight: 500; font-size: 14px; }
+.moons li span { color: var(--dim); font-size: 13.5px; }
+.close {
+  position: absolute; top: 18px; right: 18px;
+  background: none; border: 1px solid var(--line); color: var(--ink);
+  font-family: var(--mono); font-size: 11px; cursor: pointer; padding: 5px 10px;
+}
+.close:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------------- list view: the fast path ---------------- */
+#list {
+  position: relative; z-index: 6; display: none;
+  max-width: 880px; margin-inline: auto; padding: 86px 24px 90px;
+}
+body.listing #list { display: block; }
+body.listing #scene, body.listing #labels, body.listing .frame { display: none; }
+body.listing .hud { position: fixed; background: linear-gradient(var(--void), transparent 70%); }
+body.listing .hud-mid, body.listing .hud-bot { display: none; }
+
+#list h1 { font-size: clamp(30px, 5vw, 46px); font-weight: 300; letter-spacing: -.02em; margin: 0 0 10px; }
+#list .intro { color: var(--dim); max-width: 60ch; margin: 0 0 44px; }
+.row { border-top: 1px solid var(--line); padding: 26px 0; display: grid; grid-template-columns: 110px 1fr; gap: 22px; }
+@media (max-width: 620px) { .row { grid-template-columns: 1fr; gap: 8px; } }
+.row h2 { font-size: 22px; font-weight: 400; margin: 0 0 6px; }
+.row p { margin: 0 0 10px; color: #cdd1ca; }
+.row .yr { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; color: var(--faint); padding-top: 6px; }
+
+/* ---------------- loader ---------------- */
+#loader {
+  position: fixed; inset: 0; z-index: 9; background: var(--void);
+  display: grid; place-content: center; text-align: center; gap: 16px; padding: 24px;
+  transition: opacity .6s ease;
+}
+#loader.gone { opacity: 0; pointer-events: none; }
+#loader h1 { font-size: clamp(26px, 5vw, 42px); font-weight: 300; letter-spacing: -.02em; margin: 0; }
+.bar { width: min(320px, 70vw); height: 1px; background: var(--line); margin: 6px auto 0; position: relative; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); transition: width .3s ease; }
+.tiers { display: flex; gap: 8px; justify-content: center; margin-top: 4px; }
+
+/* ---------------- title page: the advert visitors land on ---------------- */
+#loader {
+  display: flex; flex-direction: column; overflow-y: auto; text-align: center;
+  padding: 40px 20px; gap: 0;
+}
+.tp { position: relative; z-index: 1; margin: auto; max-width: 760px; display: grid; gap: 16px; justify-items: center; }
+.tp h1 {
+  font-family: Georgia, "Times New Roman", serif; font-weight: 400;
+  font-size: clamp(46px, 9vw, 104px); letter-spacing: -.01em; line-height: 1;
+  margin: 4px 0 2px; text-shadow: 0 2px 40px rgba(240,162,60,.25);
+}
+.tp h1 .dot {
+  font-family: var(--mono); font-size: .28em; color: var(--accent);
+  letter-spacing: .02em; vertical-align: .55em; margin-left: .12em;
+}
+.tp-pitch { font-size: clamp(16px, 1.9vw, 19px); color: #d2d6cf; max-width: 52ch; margin: 0; line-height: 1.55; }
+.tp-pitch em { font-style: normal; color: var(--accent); }
+.tp-offer {
+  list-style: none; margin: 10px 0 6px; padding: 0; width: 100%;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.tp-offer li { padding: 16px 14px; text-align: left; }
+.tp-offer li + li { border-left: 1px solid var(--line); }
+.tp-offer b { display: block; font-weight: 500; font-size: 15px; }
+.tp-offer span { display: block; color: var(--dim); font-size: 13.5px; line-height: 1.45; margin-top: 3px; }
+@media (max-width: 640px) {
+  .tp-offer { grid-template-columns: 1fr; }
+  .tp-offer li + li { border-left: 0; border-top: 1px solid var(--line); }
+}
+.tp-how { color: var(--ink); }
+.tp-enter {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--void); background: var(--accent); border: 0; padding: 14px 24px; cursor: pointer;
+  margin-top: 4px; transition: filter .2s, transform .2s;
+}
+.tp-enter:hover { filter: brightness(1.12); transform: translateY(-1px); }
+
+/* a quiet starfield and a little orrery turning behind the words */
+.tp-stars {
+  position: fixed; inset: 0; pointer-events: none; opacity: .7;
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 78% 12%, #cfd6e4 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 64% 72%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 30% 82%, #aab2c4 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 48%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 6% 56%, #cfd6e4 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 44% 8%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 52% 94%, #aab2c4 50%, transparent 51%);
+  background-size: 420px 420px;
+}
+.tp-orrery {
+  position: fixed; left: 50%; top: 50%; width: min(1100px, 150vw); aspect-ratio: 1;
+  transform: translate(-50%, -50%) rotateX(68deg); pointer-events: none; opacity: .55;
+}
+.tp-orrery i {
+  position: absolute; inset: 0; margin: auto; border-radius: 50%;
+  border: 1px solid rgba(236,238,229,.12); animation: orr 60s linear infinite;
+}
+.tp-orrery i::after {
+  content: ""; position: absolute; top: 50%; left: -4px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c); box-shadow: 0 0 14px var(--c);
+}
+.tp-orrery i:nth-child(1) { width: 34%; height: 34%; --c: #c8923f; animation-duration: 26s; }
+.tp-orrery i:nth-child(2) { width: 52%; height: 52%; --c: #6f7fe8; animation-duration: 40s; }
+.tp-orrery i:nth-child(3) { width: 72%; height: 72%; --c: #c9701f; animation-duration: 58s; }
+.tp-orrery i:nth-child(4) { width: 92%; height: 92%; --c: #3fd37f; animation-duration: 80s; }
+.tp-orrery b {
+  position: absolute; inset: 0; margin: auto; width: 6%; height: 6%; border-radius: 50%;
+  background: radial-gradient(#ffd9a0, rgba(255,170,90,0) 70%); box-shadow: 0 0 60px rgba(255,190,120,.6);
+}
+@keyframes orr { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .tp-orrery i { animation: none; } }
+
+/* chapter card, the way camper titles each part of its world */
+#chapter {
+  position: fixed; left: 0; right: 0; top: 36%; z-index: 4; text-align: center;
+  pointer-events: none; opacity: 0; transform: translateY(12px);
+  transition: opacity .7s ease, transform 1s cubic-bezier(.22,1,.26,1);
+}
+#chapter.show { opacity: 1; transform: none; }
+#chapter h2 {
+  font-family: Georgia, "Times New Roman", serif; font-weight: 400;
+  font-size: clamp(30px, 5.4vw, 58px); letter-spacing: .02em; margin: 8px 0 0;
+  text-shadow: 0 2px 34px rgba(0,0,0,.9);
+}
+@media (min-width: 641px) { body.detail-open #chapter { right: min(420px, 100% - 28px); } }
+#scene { cursor: grab; }
+#scene:active { cursor: grabbing; }
+
+@media (prefers-reduced-motion: reduce) {
+  #detail { transition-duration: .01ms; }
+  #chapter { transition-duration: .01ms; }
+}
+</style>
+
+<canvas id="scene"></canvas>
+<div id="labels"></div>
+<div id="chapter" aria-hidden="true"><p class="lbl" id="chNum"></p><h2 id="chName"></h2></div>
+<div class="frame"></div>
+
+<div id="fallback">
+  <p>This view needs WebGL, which your browser has turned off.<br>
+  The written version below has everything in it.</p>
+</div>
+
+<div class="hud">
+  <div class="hud-top">
+    <div class="ident">
+      <strong>Nistha&rsquo;s Galaxy</strong>
+      <span class="lbl">Digital adverts and magazines</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="ghost" id="sound" type="button" aria-pressed="false">sound off</button>
+      <button class="ghost" id="toList" type="button" aria-pressed="false">read as a list</button>
+    </div>
+  </div>
+  <div class="hud-mid"></div>
+  <div class="hud-bot">
+    <span class="lbl" id="hint">drag to orbit &middot; scroll to zoom &middot; click a planet to open it</span>
+    <span class="lbl" id="counter"></span>
+  </div>
+</div>
+
+<aside id="detail" aria-live="polite" aria-label="Project detail">
+  <button class="close" id="closeDetail" type="button">close</button>
+  <div id="detailBody"></div>
+</aside>
+
+<main id="list"></main>
+
+<div id="loader">
+  <div class="tp-stars" aria-hidden="true"></div>
+  <div class="tp-orrery" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
+  <div class="tp">
+    <p class="lbl">Chapter one &nbsp;/&nbsp; An invitation</p>
+    <h1>Nistha&rsquo;s Galaxy</h1>
+    <p class="tp-pitch">Looking for a <em>personal digital advertisement</em> or a <em>magazine</em> of your own? Every site in this system was designed and built from a blank page, and each one is a small world you can walk into.</p>
+    <ul class="tp-offer">
+      <li><b>Personal pages</b><span>a CV or portfolio people remember after they close the tab</span></li>
+      <li><b>Brand adverts</b><span>a caf&eacute;, a shop or a startup, told as a place to explore</span></li>
+      <li><b>Digital magazines</b><span>long reads with motion, sound and a little play</span></li>
+    </ul>
+    <p class="lbl tp-how">Six sample sites in five worlds &middot; click any planet to open it</p>
+    <div class="bar"><i id="barFill"></i></div>
+    <p class="lbl" id="loadMsg">entering the system &middot; 0%</p>
+    <div class="tiers" role="group" aria-label="Graphics quality">
+      <button class="ghost" data-tier="low" type="button">low</button>
+      <button class="ghost" data-tier="med" type="button" aria-pressed="true">medium</button>
+      <button class="ghost" data-tier="high" type="button">high</button>
+    </div>
+    <div><button class="tp-enter" id="enter" type="button">Enter the system <span aria-hidden="true">&rarr;</span></button></div>
+    <p class="lbl" style="color:var(--faint)">better with sound on</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =====================================================================
+   THE CONTENT.
+
+   Every planet is one object in this array. To add a project, copy a
+   block, change the fields, and that is the whole job: the 3D system,
+   the labels and the written list all build themselves from this.
+
+   colour  hex the planet is lit in, pulled from that project's own palette
+   orbit   distance from the sun; keep them separated or the rings crowd
+   size    radius; make the bigger pieces of work bigger
+   moons   the notable parts inside a project
+   ===================================================================== */
+var SYSTEM = [
+  { id: "aldermoor", name: "Exam Prep Guide Sample", kind: "Aldermoor",
+    url: "exam/",
+    tagline: "A revision tool disguised as a Gothic castle.",
+    colour: 0xc8923f, size: 1.6, orbit: 13, speed: 0.085, tilt: 0.04 },
+  { id: "quiz", name: "NET Quiz Sample", kind: "How far will you go for your dreams",
+    url: "quiz/",
+    tagline: "A timed UGC NET practice bank with a blunder book that remembers every miss.",
+    colour: 0x2e9c8e, size: 1.15, orbit: 19, speed: 0.06, tilt: -0.04 },
+  /* one planet, two CVs: "links" makes the planet open a chooser instead of a site */
+  { id: "cv", name: "CV Portfolio Sample", kind: "Two CV sites",
+    tagline: "Two ways to lay out the same CV. Both filled with invented details, so you see the design rather than someone else's life.",
+    links: [
+      { label: "CV Portfolio Style 1", note: "Marbled book endpapers, generated live on the GPU.",
+        url: "cv-1/", colour: 0x6f7fe8 },
+      { label: "CV Portfolio Style 2", note: "A sentence set as a field of letters that parts around your cursor.",
+        url: "cv-2/", colour: 0xee2b1c }
+    ],
+    colour: 0x6f7fe8, size: 1.3, orbit: 25, speed: 0.06, tilt: 0.06 },
+  { id: "bakery", name: "Cafe Sample", kind: "Brownie Points",
+    url: "cafe/",
+    tagline: "A bakery drawn in biro on ruled paper, with two games.",
+    colour: 0xc9701f, size: 1.25, orbit: 31, speed: 0.048, tilt: -0.03 },
+  { id: "mothwing", name: "Tech Theme Sample", kind: "Mothwing",
+    url: "tech/",
+    tagline: "A terminal boots, then you fall down a tunnel of light.",
+    colour: 0x3fd37f, size: 1.1, orbit: 37, speed: 0.037, tilt: 0.06 },
+  { id: "spare2", name: "Your world, next", spare: true, colour: 0x8d94a1, size: 0.9, orbit: 43, speed: 0.029, tilt: -0.06 }
+];
+
+/* ===================================================================== */
+(function () {
+  "use strict";
+
+  var byId = function (i) { return document.getElementById(i); };
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- the written list, built from the same data ---------- */
+  (function buildList() {
+    var el = byId("list");
+    var html = '<h1>Sample worlds</h1>' +
+      '<p class="intro">Six sample sites across five worlds, and one orbit kept free for yours. Each name opens the live site.</p>';
+    SYSTEM.forEach(function (p) {
+      if (p.spare) {
+        html += '<article class="row"><div class="yr">reserved</div><div><h2 style="color:var(--dim)">Your world, next</h2>' +
+          '<p style="color:var(--dim)">This orbit is kept free for your site.</p></div></article>';
+        return;
+      }
+      html += '<article class="row"><div class="yr">' + p.kind + '</div><div>' +
+        (p.links ? '<h2>' + p.name + '</h2><p>' + p.tagline + '</p>' + p.links.map(function (l) {
+          return '<p><a class="pick" href="' + l.url + '">' + l.label + ' &#8599;</a> <span style="color:var(--dim)">' + l.note + '</span></p>';
+        }).join('') + '</div></article>' : '') + (p.links ? '' :
+        '<h2>' + (p.url ? '<a href="' + p.url + '">' + p.name + ' &#8599;</a>' : p.name) + '</h2>' +
+        '<p>' + p.tagline + '</p>' + (p.url ? '' : '<p class="lbl">live link on request</p>') +
+        '</div></article>');
+    });
+    el.innerHTML = html;
+  })();
+
+  /* ---------- chapter cards ---------- */
+  var chT = 0;
+  function chapter(num, name) {
+    var el = byId("chapter");
+    byId("chNum").textContent = num;
+    byId("chName").textContent = name;
+    el.classList.add("show");
+    clearTimeout(chT);
+    chT = setTimeout(function () { el.classList.remove("show"); }, 2100);
+  }
+
+  /* ---------- sound, all synthesised: no audio files to load ----------
+     A low two-voice drone through a slowly breathing filter, a soft whoosh
+     when you fly to a world, and a tiny blip on hover. Nothing plays until
+     the visitor turns it on, which is also when browsers allow audio. */
+  var ac = null, master = null, noiseBuf = null, soundOn = false;
+  function initAudio() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    ac = new AC();
+    master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+    var lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 520; lp.Q.value = 0.6;
+    lp.connect(master);
+    [[55, "sine", 0.55], [82.41, "triangle", 0.22], [110.3, "sine", 0.12]].forEach(function (v) {
+      var o = ac.createOscillator(); o.type = v[1]; o.frequency.value = v[0];
+      var g = ac.createGain(); g.gain.value = v[2];
+      o.connect(g); g.connect(lp); o.start();
+    });
+    var lfo = ac.createOscillator(); lfo.frequency.value = 0.07;
+    var lg = ac.createGain(); lg.gain.value = 240;
+    lfo.connect(lg); lg.connect(lp.frequency); lfo.start();
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 1.2, ac.sampleRate);
+    var d = noiseBuf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return true;
+  }
+  function whoosh() {
+    if (!soundOn || !ac) return;
+    var src = ac.createBufferSource(); src.buffer = noiseBuf;
+    var bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 0.9;
+    var g = ac.createGain(); var t = ac.currentTime;
+    bp.frequency.setValueAtTime(260, t); bp.frequency.exponentialRampToValueAtTime(1800, t + 0.9);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.14, t + 0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.1);
+    src.connect(bp); bp.connect(g); g.connect(ac.destination); src.start(t); src.stop(t + 1.2);
+  }
+  function blip() {
+    if (!soundOn || !ac) return;
+    var o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+    o.type = "sine"; o.frequency.setValueAtTime(880, t); o.frequency.exponentialRampToValueAtTime(1320, t + 0.08);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.035, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + 0.18);
+  }
+  function setSound(on) {
+    if (on && !ac && !initAudio()) return;
+    soundOn = on;
+    var b = byId("sound");
+    b.setAttribute("aria-pressed", String(on));
+    b.textContent = on ? "sound on" : "sound off";
+    if (ac) {
+      if (on && ac.state === "suspended") ac.resume();
+      master.gain.cancelScheduledValues(ac.currentTime);
+      master.gain.linearRampToValueAtTime(on ? 0.09 : 0, ac.currentTime + 1.4);
+    }
+  }
+  byId("sound").addEventListener("click", function () { setSound(!soundOn); });
+
+  /* ---------- detail panel ---------- */
+  var detail = byId("detail"), detailBody = byId("detailBody");
+  function openDetail(p) {
+    if (p.spare) {
+      detailBody.innerHTML = '<p class="lbl">Empty orbit</p><h2>Your world, next</h2>' +
+        '<p class="tag">This orbit is kept free for your site.</p>';
+    } else {
+      detailBody.innerHTML = '<p class="lbl">' + p.kind + '</p><h2>' + p.name + '</h2>' +
+        '<p class="tag">' + p.tagline + '</p>' +
+        (p.links ? '<div class="choices">' + p.links.map(function (l, n) {
+            var hex = "#" + l.colour.toString(16).padStart(6, "0");
+            return '<a class="choice" href="' + l.url + '" style="--c:' + hex + '">' +
+              '<span class="lbl">Option 0' + (n + 1) + '</span><b>' + l.label + ' <span aria-hidden="true">&#8599;</span></b>' +
+              '<span class="note">' + l.note + '</span></a>';
+          }).join('') + '</div>'
+        : p.url
+          ? '<a class="launch" href="' + p.url + '">Open the site <span aria-hidden="true">&#8599;</span></a>'
+          : '<p class="lbl" style="margin-top:18px">live link on request</p>');
+    }
+    detail.classList.add("open");
+    document.body.classList.add("detail-open");
+  }
+  function closeDetail() {
+    detail.classList.remove("open");
+    document.body.classList.remove("detail-open");
+    focused = null;
+    flyTo(null);
+    document.querySelectorAll(".plabel").forEach(function (l) { l.setAttribute("data-active", "false"); });
+  }
+  byId("closeDetail").addEventListener("click", closeDetail);
+  window.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDetail(); });
+
+  /* ---------- list toggle ---------- */
+  var toList = byId("toList");
+  toList.addEventListener("click", function () {
+    var on = document.body.classList.toggle("listing");
+    toList.setAttribute("aria-pressed", String(on));
+    toList.textContent = on ? "back to the system" : "read as a list";
+    if (on) closeDetail();
+  });
+
+  /* ---------- no WebGL: the list is the whole site ---------- */
+  function noGL(msg) {
+    byId("loader").classList.add("gone");
+    byId("fallback").style.display = "grid";
+    document.body.classList.add("listing");
+    toList.hidden = true;
+    byId("hint").textContent = msg || "";
+  }
+  if (typeof THREE === "undefined") { noGL("3d library did not load"); return; }
+
+  /* ---------- quality tiers ---------- */
+  var TIERS = {
+    low:  { stars: 500,  seg: 16, dpr: 1,   rings: false },
+    med:  { stars: 1400, seg: 32, dpr: 1.5, rings: true  },
+    high: { stars: 2600, seg: 48, dpr: 2,   rings: true  }
+  };
+  var tier = "med";
+  document.querySelectorAll("[data-tier]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      tier = b.dataset.tier;
+      document.querySelectorAll("[data-tier]").forEach(function (o) {
+        o.setAttribute("aria-pressed", String(o === b));
+      });
+    });
+  });
+
+  /* ---------- scene ---------- */
+  var cv = byId("scene"), renderer, scene, camera, raycaster, planets = [], sunMesh;
+  var labelWrap = byId("labels"), labels = [];
+  var focused = null;
+
+  // camera as spherical coords around a focus point
+  var cam = { theta: 0.72, phi: 1.07, dist: 80, tTheta: 0.72, tPhi: 1.07, tDist: 80 };
+  var focus = new THREE.Vector3(0, 0, 0), focusTarget = new THREE.Vector3(0, 0, 0);
+  var clock = 0, running = false, raf = 0, last = 0;
+
+  function build() {
+    var T = TIERS[tier];
+    renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: tier !== "low", alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, T.dpr));
+    renderer.setClearColor(0x06080d, 1);
+
+    scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x06080d, 0.0065 * 80 / homeDist());   // thinner fog when the camera sits further back
+    camera = new THREE.PerspectiveCamera(46, 1, 0.1, 600);
+    raycaster = new THREE.Raycaster();
+
+    // stars
+    var pos = new Float32Array(T.stars * 3);
+    for (var i = 0; i < T.stars; i++) {
+      var r = 120 + Math.random() * 260;
+      var a = Math.random() * Math.PI * 2, b = Math.acos(2 * Math.random() - 1);
+      pos[i * 3] = r * Math.sin(b) * Math.cos(a);
+      pos[i * 3 + 1] = r * Math.cos(b) * 0.55;
+      pos[i * 3 + 2] = r * Math.sin(b) * Math.sin(a);
+    }
+    var sg = new THREE.BufferGeometry();
+    sg.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xaab2c4, size: 0.7, sizeAttenuation: true })));
+
+    // sun
+    sunMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(3.1, T.seg, T.seg),
+      new THREE.MeshBasicMaterial({ color: 0xffd9a0 })
+    );
+    scene.add(sunMesh);
+    if (portrait()) sunMesh.scale.setScalar(1.7);
+    scene.add(new THREE.PointLight(0xffd3a0, 2.4, 260));
+    // from overhead you see each planet's shadowed half, so phones get more fill light
+    scene.add(new THREE.AmbientLight(portrait() ? 0x8890a4 : 0x3c4455, portrait() ? 2.2 : 1.1));
+
+    // glow sprite, drawn once into a canvas texture
+    var gc = document.createElement("canvas"); gc.width = gc.height = 128;
+    var gx = gc.getContext("2d");
+    var grad = gx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, "rgba(255,210,150,.85)");
+    grad.addColorStop(0.4, "rgba(255,170,90,.22)");
+    grad.addColorStop(1, "rgba(255,160,80,0)");
+    gx.fillStyle = grad; gx.fillRect(0, 0, 128, 128);
+    var glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: new THREE.CanvasTexture(gc), blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    glow.scale.set(26 * (portrait() ? 1.7 : 1), 26 * (portrait() ? 1.7 : 1), 1);
+    scene.add(glow);
+
+    // planets
+    SYSTEM.forEach(function (p, idx) {
+      var pivot = new THREE.Object3D();
+      pivot.rotation.x = p.tilt || 0;
+      scene.add(pivot);
+
+      var mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(p.size, T.seg, T.seg),
+        p.spare
+          ? new THREE.MeshBasicMaterial({ color: p.colour, wireframe: true, transparent: true, opacity: 0.35 })
+          : new THREE.MeshStandardMaterial({ color: p.colour, roughness: 0.82, metalness: 0.05 })
+      );
+      mesh.userData.project = p;
+      pivot.add(mesh);
+      // a planet holding several sites wears one small moon per site
+      if (p.links) p.links.forEach(function (l, n) {
+        var moon = new THREE.Mesh(new THREE.SphereGeometry(p.size * .26, T.seg / 2, T.seg / 2),
+          new THREE.MeshStandardMaterial({ color: l.colour, roughness: .7 }));
+        var a = n / p.links.length * Math.PI * 2;
+        moon.position.set(Math.cos(a) * p.size * 1.9, .25, Math.sin(a) * p.size * 1.9);
+        mesh.add(moon);
+      });
+
+      if (T.rings) {
+        var pts = [], N = 128;
+        for (var k = 0; k <= N; k++) {
+          var ang = (k / N) * Math.PI * 2;
+          pts.push(new THREE.Vector3(Math.cos(ang) * p.orbit, 0, Math.sin(ang) * p.orbit));
+        }
+        var rg = new THREE.BufferGeometry().setFromPoints(pts);
+        pivot.add(new THREE.Line(rg, new THREE.LineBasicMaterial({
+          color: p.colour, transparent: true, opacity: p.spare ? 0.1 : 0.22
+        })));
+      }
+
+      // fixed starting angles 150 degrees apart (0, 150, 300, 90, 240, 30), so
+      // planets on neighbouring orbits always sit far apart around the sun
+      planets.push({ p: p, mesh: mesh, pivot: pivot, angle: (idx * 150 + 20) * Math.PI / 180 });
+
+      var btn = document.createElement(p.url ? "a" : "button");
+      btn.className = "plabel";
+      if (p.url) { btn.href = p.url;  } else { btn.type = "button"; }
+      btn.textContent = p.spare ? "Your world, next" : p.name;
+      if (p.spare) btn.style.opacity = "0.45";
+      btn.style.color = "#" + p.colour.toString(16).padStart(6, "0");
+      btn.setAttribute("data-active", "false");
+      btn.addEventListener("click", function () { select(p); });
+      labelWrap.appendChild(btn);
+      labels.push(btn);
+    });
+
+    var real = SYSTEM.filter(function (x) { return !x.spare; }).length;
+    byId("counter").textContent = real + " samples \u00b7 " + (SYSTEM.length - real) + " orbit open";
+    cam.dist = cam.tDist = homeDist(); cam.tPhi = homePhi();
+    resize();
+  }
+
+  function resize() {
+    var w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    if (!focused) { cam.tDist = homeDist(); cam.tPhi = homePhi(); }
+  }
+
+  function select(p) {
+    var idx = SYSTEM.indexOf(p);
+    chapter(p.spare ? "Empty orbit" : "World 0" + (idx + 1) + " / " + p.kind, p.spare ? "Your world, next" : p.name);
+    whoosh();
+    focused = p;
+    openDetail(p);
+    labels.forEach(function (l) { l.setAttribute("data-active", String(l.textContent === p.name)); });
+    flyTo(p);
+  }
+
+  // pull back far enough that the outermost orbit fits the screen's width;
+  // tall phone screens need much more distance than a laptop does
+  function portrait() { return window.innerWidth / window.innerHeight < 1; }
+  function homeDist() {
+    var half = Math.tan(23 * Math.PI / 180) * (window.innerWidth / window.innerHeight);
+    return Math.max(88, 48 / half);
+  }
+  // on a phone, seen from that far back, planets would be specks: draw them larger
+  // a tall screen looks down from nearly overhead, so the orbits open into
+  // circles that fill the height instead of a thin band across the middle
+  function homePhi() { return portrait() ? 0.42 : 1.07; }
+  function boost() { return portrait() ? 2.2 : 1; }
+
+  function flyTo(p) {
+    if (!p) { focusTarget.set(0, 0, 0); cam.tDist = homeDist(); cam.tPhi = homePhi(); return; }
+    var entry = planets.filter(function (q) { return q.p === p; })[0];
+    if (!entry) return;
+    var wp = new THREE.Vector3();
+    entry.mesh.getWorldPosition(wp);
+    focusTarget.copy(wp);
+    cam.tDist = Math.max(7, p.size * 6.2);
+    cam.tPhi = 1.18;
+  }
+
+  /* ---------- input ---------- */
+  var dragging = false, lastX = 0, lastY = 0, moved = 0;
+  var mouseNX = 0, mouseNY = 0, par = { x: 0, y: 0 }, hovered = null;
+
+  function hoverAt(cx, cy) {
+    if (!raycaster || !camera) return;
+    var m = new THREE.Vector2((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+    raycaster.setFromCamera(m, camera);
+    var hits = raycaster.intersectObjects(planets.map(function (q) { return q.mesh; }));
+    var h = hits.length ? planets.filter(function (q) { return q.mesh === hits[0].object; })[0] : null;
+    if (h !== hovered) {
+      hovered = h;
+      cv.style.cursor = h ? "pointer" : "";
+      if (h) blip();
+    }
+  }
+  cv.addEventListener("pointerdown", function (e) {
+    dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY;
+    cv.setPointerCapture && cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener("pointermove", function (e) {
+    mouseNX = (e.clientX / window.innerWidth) * 2 - 1;
+    mouseNY = (e.clientY / window.innerHeight) * 2 - 1;
+    if (!dragging) { hoverAt(e.clientX, e.clientY); return; }
+    var dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    moved += Math.abs(dx) + Math.abs(dy);
+    cam.tTheta -= dx * 0.005;
+    cam.tPhi = Math.max(0.25, Math.min(Math.PI - 0.25, cam.tPhi - dy * 0.005));
+  });
+  cv.addEventListener("pointerup", function (e) {
+    dragging = false;
+    if (moved < 6) pick(e.clientX, e.clientY);     // a tap, not a drag
+  });
+  cv.addEventListener("pointercancel", function () { dragging = false; });
+  cv.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    cam.tDist = Math.max(6, Math.min(Math.max(130, homeDist() * 1.2), cam.tDist + e.deltaY * 0.055));
+  }, { passive: false });
+
+  function pick(cx, cy) {
+    var m = new THREE.Vector2((cx / window.innerWidth) * 2 - 1, -(cy / window.innerHeight) * 2 + 1);
+    raycaster.setFromCamera(m, camera);
+    var hits = raycaster.intersectObjects(planets.map(function (q) { return q.mesh; }));
+    if (hits.length) {
+      var pr = hits[0].object.userData.project;
+      select(pr);
+      // must run inside the click to count as a user gesture; the launch card
+      // stays up with a real link in case the browser blocks the new tab
+      if (pr.url) { try { window.open(pr.url, "_blank", "noopener"); } catch (err) {} }
+    }
+    else closeDetail();
+  }
+
+  // keyboard: every planet reachable without a mouse
+  window.addEventListener("keydown", function (e) {
+    if (document.body.classList.contains("listing")) return;
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    var i = focused ? SYSTEM.indexOf(focused) : -1;
+    i = (i + (e.key === "ArrowRight" ? 1 : -1) + SYSTEM.length) % SYSTEM.length;
+    select(SYSTEM[i]);
+  });
+
+  window.addEventListener("resize", resize, { passive: true });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stop(); else start();
+  });
+
+  /* ---------- loop ---------- */
+  var tmp = new THREE.Vector3(), placed = [];
+  function frame(now) {
+    if (!running) return;
+    var dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016;
+    last = now; clock += dt;
+
+    planets.forEach(function (q) {
+      // every planet turns at the same rate, so the spacing set above never closes up
+      // and two labels can never drift on top of each other
+      q.angle += 0.035 * dt * (reduce ? 0.2 : 1);
+      q.mesh.position.set(Math.cos(q.angle) * q.p.orbit, 0, Math.sin(q.angle) * q.p.orbit);
+      q.mesh.rotation.y += dt * 0.25;
+      var want = ((q === hovered || q.p === focused) ? 1.24 : 1) * (q.p === focused ? 1 : boost());
+      q.mesh.scale.setScalar(q.mesh.scale.x + (want - q.mesh.scale.x) * Math.min(1, dt * 7));
+    });
+    if (focused) flyTo(focused);     // keep the camera on a moving planet
+
+    var k = 1 - Math.pow(0.0016, dt);          // frame-rate independent easing
+    cam.theta += (cam.tTheta - cam.theta) * k;
+    cam.phi   += (cam.tPhi   - cam.phi)   * k;
+    cam.dist  += (cam.tDist  - cam.dist)  * k;
+    focus.lerp(focusTarget, k);
+
+    // the camera leans a little toward the cursor, so the system feels like a place
+    if (!reduce && !dragging) {
+      var kp = 1 - Math.pow(0.05, dt);
+      par.x += (mouseNX - par.x) * kp;
+      par.y += (mouseNY - par.y) * kp;
+    }
+    var th = cam.theta + par.x * 0.07, ph = cam.phi + par.y * 0.035;
+    camera.position.set(
+      focus.x + cam.dist * Math.sin(ph) * Math.cos(th),
+      focus.y + cam.dist * Math.cos(ph),
+      focus.z + cam.dist * Math.sin(ph) * Math.sin(th)
+    );
+    camera.lookAt(focus);
+
+    // project each planet to screen space for its HTML label
+    planets.forEach(function (q, i) {
+      // offset the label above the planet in WORLD space, not by a fixed pixel
+      // amount: a flat -24px put the text inside the bigger spheres and made
+      // it drift as you zoomed.
+      // (now in screen space: the planet's drawn radius in pixels, then a gap,
+      // so the label clears the sphere from any viewing angle, overhead included)
+      q.mesh.getWorldPosition(tmp);
+      var camD = tmp.distanceTo(camera.position);
+      tmp.project(camera);
+      var el = labels[i];
+      if (tmp.z > 1) { el.style.display = "none"; placed[i] = null; return; }
+      el.style.display = "block";
+      var rPx = q.p.size * q.mesh.scale.x * 1.35 / camD * (window.innerHeight / 2) / Math.tan(23 * Math.PI / 180);
+      placed[i] = { el: el, x: (tmp.x * 0.5 + 0.5) * window.innerWidth,
+                    y: (-tmp.y * 0.5 + 0.5) * window.innerHeight - rPx - 14, w: el.offsetWidth };
+    });
+    // safety net for zoomed or dragged views: if two labels still overlap,
+    // push the lower one down until it clears
+    var vis = placed.filter(Boolean).sort(function (a, b) { return a.y - b.y; });
+    for (var a = 0; a < vis.length; a++) for (var b = a + 1; b < vis.length; b++) {
+      var A = vis[a], B = vis[b];
+      if (Math.abs(A.x - B.x) < (A.w + B.w) / 2 + 6 && B.y - A.y < 24) B.y = A.y + 24;
+    }
+    vis.forEach(function (v) {
+      var m = v.w / 2 + 10;   // keep every label fully on screen
+      v.el.style.left = Math.max(m, Math.min(window.innerWidth - m, v.x)) + "px";
+      v.el.style.top = v.y + "px";
+    });
+
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(frame);
+  }
+  function start() { if (running) return; running = true; last = 0; raf = requestAnimationFrame(frame); }
+  function stop() { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; }
+
+  /* ---------- boot ---------- */
+  var fill = byId("barFill"), loadMsg = byId("loadMsg"), loader = byId("loader");
+  var pct = 0;
+  var tick = setInterval(function () {
+    pct = Math.min(100, pct + 9 + Math.random() * 14);
+    fill.style.width = pct + "%";
+    loadMsg.textContent = "entering the system \u00b7 " + Math.round(pct) + "%";
+    if (pct >= 100) { clearInterval(tick); loadMsg.textContent = "the system is ready"; }
+  }, 120);
+
+  byId("enter").addEventListener("click", function () {
+    try { build(); } catch (err) {
+      if (window.console) console.warn(err);
+      noGL("could not start the 3d view");
+      return;
+    }
+    loader.classList.add("gone");
+    setTimeout(function () { loader.style.display = "none"; }, 650);
+    if (!reduce) { cam.dist = Math.max(240, homeDist() * 1.6); cam.phi = 0.5; cam.theta = -0.6; }   // swoop in from deep space
+    start();
+    setTimeout(function () { chapter("Chapter one / The first orbit", "Nistha\u2019s Galaxy"); }, 500);
+  });
+})();
+</script>
+
+</body></html>
